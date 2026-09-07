@@ -5,7 +5,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import chokidar from "chokidar";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const CREATOR = "sbyuxD";
+const CREATOR = "JustPutu's";
 
 const USER_AGENTS = [
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
