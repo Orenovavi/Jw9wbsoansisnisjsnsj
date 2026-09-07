@@ -16,8 +16,7 @@
   <link rel="icon" type="image/jpeg" href="/media/DenzcOne.jpg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@500,700,900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet" />
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -28,28 +27,28 @@
       theme: {
         extend: {
           fontFamily: {
-            serif: ['"DM Serif Display"', 'serif'],
-            sans: ['"Satoshi"', 'sans-serif'],
+            sans: ['"Space Grotesk"', 'sans-serif'],
             mono: ['"JetBrains Mono"', 'monospace'],
           },
           colors: {
-            cream: {
-              50: '#FDFCF9',
-              100: '#F8F5EE',
-              200: '#F0EAE1',
-              300: '#E6DCCF',
-              border: '#E3DACB',
+            neo: {
+              bg: '#FAF8F5',
+              yellow: '#FFDE59',
+              cyan: '#00F0FF',
+              pink: '#FF5757',
+              lime: '#00E676',
+              purple: '#A855F7',
+              orange: '#FF914D',
+              black: '#000000',
               card: '#FFFFFF',
-              title: '#24201C',
-              body: '#61584D',
-              muted: '#8A7F71',
-            },
-            accent: {
-              clay: '#C05C2B',
-              clayHover: '#A44B1E',
-              clayLight: '#E88B5F',
-              stone: '#161311',
             }
+          },
+          boxShadow: {
+            'neo': '4px 4px 0px 0px #000000',
+            'neo-lg': '6px 6px 0px 0px #000000',
+            'neo-xl': '8px 8px 0px 0px #000000',
+            'neo-sm': '2px 2px 0px 0px #000000',
+            'neo-reverse': '-4px -4px 0px 0px #000000',
           }
         }
       }
@@ -61,92 +60,105 @@
       outline: none;
     }
     ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
+      width: 8px;
+      height: 8px;
     }
     ::-webkit-scrollbar-track {
-      background: #F8F5EE;
+      background: #FAF8F5;
+      border-left: 3px solid #000;
     }
     ::-webkit-scrollbar-thumb {
-      background: #E3DACB;
-      border-radius: 999px;
+      background: #FFDE59;
+      border: 3px solid #000;
     }
     ::-webkit-scrollbar-thumb:hover {
-      background: #C05C2B;
+      background: #FF5757;
     }
     .dynamic-island {
-      background: #161311;
+      background: #000000;
+      border: 3px solid #000000;
+      box-shadow: 5px 5px 0px 0px #FFDE59;
       border-radius: 9999px;
-      box-shadow: 0 20px 45px -10px rgba(22, 19, 17, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
-      transition: width 400ms cubic-bezier(0.16, 1, 0.3, 1), height 400ms cubic-bezier(0.16, 1, 0.3, 1), border-radius 400ms cubic-bezier(0.16, 1, 0.3, 1), transform 300ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 300ms ease;
-    }
-    .dynamic-island:hover {
-      transform: scale(1.02);
-      box-shadow: 0 25px 55px -10px rgba(22, 19, 17, 0.65);
-    }
-    .dynamic-island:active {
-      transform: scale(0.98);
-    }
-    .dynamic-island.expanded {
-      border-radius: 1.75rem;
-      box-shadow: 0 30px 65px -10px rgba(22, 19, 17, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.14);
-    }
-    .squircle {
-      border-radius: 1.5rem;
       transition: all 300ms cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .folder-wrapper {
-      border-radius: 1.5rem;
-      transition: border-color 300ms ease, box-shadow 300ms ease, transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+    .dynamic-island:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 7px 7px 0px 0px #FFDE59;
     }
-    .folder-wrapper:hover {
-      box-shadow: 0 12px 30px -8px rgba(97, 88, 77, 0.08);
+    .dynamic-island:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0px 0px #FFDE59;
+    }
+    .dynamic-island.expanded {
+      border-radius: 1.5rem;
+      box-shadow: 8px 8px 0px 0px #00F0FF;
+    }
+    .neo-box {
+      border: 3px solid #000000;
+      box-shadow: 5px 5px 0px 0px #000000;
+      transition: all 150ms ease;
+    }
+    .neo-btn {
+      border: 3px solid #000000;
+      box-shadow: 4px 4px 0px 0px #000000;
+      transition: all 100ms ease;
+      font-weight: 800;
+    }
+    .neo-btn:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0px 0px #000000;
+    }
+    .neo-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0px 0px #000000;
     }
     .folder-content {
       display: grid;
       grid-template-rows: 0fr;
-      transition: grid-template-rows 400ms cubic-bezier(0.16, 1, 0.3, 1), padding 350ms ease;
+      transition: grid-template-rows 300ms cubic-bezier(0.16, 1, 0.3, 1);
     }
     .folder-content.open {
       grid-template-rows: 1fr;
     }
     .card-item {
-      border-radius: 1.25rem;
-      transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 300ms ease, border-color 300ms ease;
-      animation: cardAppear 350ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+      border: 3px solid #000000;
+      box-shadow: 4px 4px 0px 0px #000000;
+      transition: all 150ms ease;
+      animation: cardAppear 250ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
     }
     .card-item:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 14px 28px -8px rgba(97, 88, 77, 0.12), 0 0 0 1px rgba(192, 92, 43, 0.35);
+      transform: translate(-3px, -3px);
+      box-shadow: 7px 7px 0px 0px #000000;
+      background-color: #00F0FF !important;
     }
     @keyframes cardAppear {
       from {
         opacity: 0;
-        transform: translateY(14px) scale(0.98);
+        transform: translateY(10px);
       }
       to {
         opacity: 1;
-        transform: translateY(0) scale(1);
+        transform: translateY(0);
       }
     }
     .modal-sheet {
       transform: translateY(100%);
-      transition: transform 350ms cubic-bezier(0.16, 1, 0.3, 1), opacity 300ms ease;
+      transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
     }
     .modal-sheet.active {
       transform: translateY(0);
     }
     .view-transition {
-      transition: opacity 300ms cubic-bezier(0.16, 1, 0.3, 1), transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+      transition: opacity 200ms ease, transform 200ms ease;
     }
     .view-enter {
       opacity: 1;
-      transform: translateY(0) scale(1);
+      transform: translateY(0);
       pointer-events: auto;
     }
     .view-leave {
       opacity: 0;
-      transform: translateY(8px) scale(0.98);
+      transform: translateY(10px);
       pointer-events: none;
     }
     .touch-ripple {
@@ -156,101 +168,113 @@
       z-index: 9999;
       transform: scale(0.2);
       opacity: 0.85;
-      background: radial-gradient(circle, rgba(192, 92, 43, 0.35) 0%, rgba(227, 218, 203, 0.25) 50%, transparent 75%);
-      transition: transform 450ms cubic-bezier(0.16, 1, 0.3, 1), opacity 450ms ease;
+      background: #FFDE59;
+      border: 2px solid #000;
+      transition: transform 400ms ease, opacity 400ms ease;
     }
     .terminal-cursor {
       display: inline-block;
-      width: 7px;
-      height: 14px;
-      background-color: #C05C2B;
+      width: 8px;
+      height: 16px;
+      background-color: #00E676;
       vertical-align: sub;
-      animation: blinkCursor 700ms infinite steps(1);
+      animation: blinkCursor 600ms infinite steps(1);
     }
     @keyframes blinkCursor {
       0%, 100% { opacity: 1; }
       50% { opacity: 0; }
     }
     .swal2-popup.custom-swal-center {
-      background: #FFFFFF !important;
-      border: 1px solid #E3DACB !important;
-      border-radius: 1.25rem !important;
+      background: #FFDE59 !important;
+      border: 4px solid #000000 !important;
+      border-radius: 0px !important;
       padding: 1.5rem !important;
-      box-shadow: 0 25px 50px -12px rgba(36, 32, 28, 0.15) !important;
+      box-shadow: 8px 8px 0px 0px #000000 !important;
     }
     .swal2-title {
-      font-size: 0.95rem !important;
-      font-weight: 700 !important;
-      font-family: "Satoshi", sans-serif !important;
-      color: #24201C !important;
+      font-size: 1.1rem !important;
+      font-weight: 900 !important;
+      font-family: "Space Grotesk", sans-serif !important;
+      color: #000000 !important;
+      text-transform: uppercase;
     }
-    .json-key { color: #1D4ED8; font-weight: 600; }
-    .json-string { color: #C05C2B; }
-    .json-number { color: #047857; }
-    .json-boolean { color: #B45309; font-weight: 700; }
-    .json-null { color: #8A7F71; font-style: italic; }
+    .json-key { color: #A855F7; font-weight: 700; }
+    .json-string { color: #00E676; }
+    .json-number { color: #FF914D; font-weight: 700; }
+    .json-boolean { color: #FF5757; font-weight: 900; }
+    .json-null { color: #888888; font-style: italic; }
   </style>
 </head>
-<body class="bg-cream-100 text-cream-title min-h-screen flex flex-col font-sans antialiased selection:bg-accent-clay selection:text-white relative">
+<body class="bg-neo-bg text-black min-h-screen flex flex-col font-sans antialiased selection:bg-neo-pink selection:text-white relative">
 
+  <!-- DYNAMIC ISLAND (NEUBRUTALISM STYLE) -->
   <div class="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex justify-center pointer-events-none">
     <div id="island-container" class="pointer-events-auto dynamic-island overflow-hidden flex flex-col items-center justify-center cursor-pointer">
-      <div id="island-pill" onclick="toggleDynamicIsland()" class="h-11 px-5 flex items-center justify-between gap-3 w-full text-cream-50">
+      <div id="island-pill" onclick="toggleDynamicIsland()" class="h-12 px-5 flex items-center justify-between gap-4 w-full text-white">
         <div class="flex items-center gap-3">
-          <img src="/media/ZEPH.jpg" alt="Logo" class="w-7 h-7 rounded-full object-cover border border-white/20 shrink-0" />
-          <span class="font-bold text-xs tracking-tight text-white font-mono">WolfApi</span>
+          <img src="/media/ZEPH.jpg" alt="Logo" class="w-7 h-7 rounded-none border-2 border-white object-cover shrink-0" />
+          <span class="font-black text-xs tracking-wider text-neo-yellow uppercase font-mono">WolfApi</span>
         </div>
-        <div class="flex items-center gap-1.5 text-white/40">
-          <i data-lucide="chevron-down" id="island-chevron" class="w-3.5 h-3.5 transition-transform duration-300"></i>
+        <div class="flex items-center gap-1.5 text-white">
+          <i data-lucide="chevron-down" id="island-chevron" class="w-4 h-4 transition-transform duration-300"></i>
         </div>
       </div>
 
-      <div id="island-menu" class="hidden w-full px-4 pb-4 pt-1 flex-col gap-1.5 transition-all duration-300">
-        <div class="h-px bg-white/10 w-full my-1"></div>
-        <button onclick="handleIslandNav('home')" class="w-full px-3.5 py-2.5 rounded-xl text-left text-xs font-bold text-white hover:bg-white/10 flex items-center gap-3 transition-colors">
-          <svg class="w-4 h-4 text-accent-clayLight shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <div id="island-menu" class="hidden w-full px-4 pb-4 pt-1 flex-col gap-2 transition-all duration-300">
+        <div class="h-1 bg-white/30 w-full my-1"></div>
+        <button onclick="handleIslandNav('home')" class="w-full px-3.5 py-2.5 bg-neo-yellow text-black border-2 border-black font-black text-xs uppercase flex items-center gap-3 neo-btn">
+          <i data-lucide="home" class="w-4 h-4 shrink-0"></i>
           <span>HOME</span>
         </button>
-        <a href="https://wa.me/628895307489" target="_blank" onclick="closeIsland()" class="w-full px-3.5 py-2.5 rounded-xl text-left text-xs font-bold text-white hover:bg-white/10 flex items-center gap-3 transition-colors">
-          <svg class="w-4 h-4 text-emerald-400 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2m.01 1.67c2.2 0 4.26.86 5.82 2.42a8.225 8.225 0 0 1 2.41 5.83c0 4.54-3.7 8.24-8.24 8.24-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.196 8.196 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24m4.52 11.66c-.19.53-.98 1.03-1.6 1.15-.41.08-.95.14-2.77-.62-2.33-.97-3.83-3.34-3.95-3.5-.11-.15-.96-1.28-.96-2.44 0-1.16.61-1.73.83-1.96.22-.24.48-.3.64-.3.16 0 .32 0 .46.01.15.01.35-.06.55.42.21.49.7 1.73.76 1.86.06.13.1.28.02.44-.08.16-.12.26-.24.4-.12.14-.25.31-.36.42-.12.12-.25.25-.11.49.14.24.63 1.04 1.35 1.68.93.83 1.71 1.09 1.95 1.21.24.12.38.1.52-.06.14-.16.61-.71.77-.96.16-.24.33-.2.55-.12.22.08 1.4.66 1.64.78.24.12.4.18.46.28.06.11.06.63-.13 1.16"/></svg>
+        <a href="https://wa.me/628895307489" target="_blank" onclick="closeIsland()" class="w-full px-3.5 py-2.5 bg-neo-lime text-black border-2 border-black font-black text-xs uppercase flex items-center gap-3 neo-btn">
+          <i data-lucide="message-circle" class="w-4 h-4 shrink-0"></i>
           <span>Contact</span>
         </a>
-        <a href="https://github.com/sbyuxD/wolf-api" target="_blank" onclick="closeIsland()" class="w-full px-3.5 py-2.5 rounded-xl text-left text-xs font-bold text-white hover:bg-white/10 flex items-center gap-3 transition-colors">
-          <svg class="w-4 h-4 text-white shrink-0" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+        <a href="https://github.com/sbyuxD/wolf-api" target="_blank" onclick="closeIsland()" class="w-full px-3.5 py-2.5 bg-neo-cyan text-black border-2 border-black font-black text-xs uppercase flex items-center gap-3 neo-btn">
+          <i data-lucide="github" class="w-4 h-4 shrink-0"></i>
           <span>Source code</span>
         </a>
       </div>
     </div>
   </div>
 
-  <main class="flex-1 max-w-5xl mx-auto w-full px-6 pt-28 pb-16 relative">
-    <div id="view-home" class="view-transition view-enter space-y-12">
-      <section class="text-center space-y-3 max-w-xl mx-auto pt-2">
-        <h1 class="font-serif text-5xl sm:text-6xl text-cream-title tracking-tight leading-none">
+  <main class="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 pt-28 pb-16 relative">
+    
+    <!-- VIEW: HOME -->
+    <div id="view-home" class="view-transition view-enter space-y-10">
+      
+      <!-- HERO -->
+      <section class="text-center space-y-4 max-w-2xl mx-auto pt-2">
+        <div class="inline-block bg-neo-pink text-white font-black text-xs uppercase px-4 py-1.5 border-2 border-black shadow-neo-sm rotate-[-2deg]">
+          ★ REST API BASE BY SBYUXD ★
+        </div>
+        <h1 class="text-6xl sm:text-7xl font-black text-black uppercase tracking-tight leading-none drop-shadow-[4px_4px_0px_#FFDE59]">
           WolfApi
         </h1>
-        <p class="text-cream-body text-sm sm:text-base leading-relaxed font-medium">
-          simple lightweight api base made by sbyuxD
+        <p class="text-black text-sm sm:text-base font-bold bg-neo-cyan border-2 border-black p-3 shadow-neo inline-block max-w-md">
+          Simple Lightweight API Base built for high speed & ultimate performance.
         </p>
       </section>
 
-      <section class="space-y-6">
-        <div class="rounded-3xl bg-accent-stone text-cream-300 border border-black/10 overflow-hidden shadow-2xl">
-          <div class="px-5 py-3.5 bg-[#120F0D] border-b border-white/5 flex items-center justify-between">
+      <section class="space-y-8">
+        
+        <!-- TERMINAL (CONSOLE BOOT) -->
+        <div class="neo-box bg-black text-white p-0 overflow-hidden shadow-neo-lg">
+          <div class="px-5 py-3 bg-neo-yellow border-b-3 border-black flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-[#EF4444] inline-block"></span>
-              <span class="w-2.5 h-2.5 rounded-full bg-[#F59E0B] inline-block"></span>
-              <span class="w-2.5 h-2.5 rounded-full bg-[#10B981] inline-block"></span>
-              <span class="ml-2 text-xs font-mono font-medium text-white/40">root@sbyuxD:~# (bash)</span>
+              <span class="w-3.5 h-3.5 border-2 border-black bg-neo-pink inline-block"></span>
+              <span class="w-3.5 h-3.5 border-2 border-black bg-neo-cyan inline-block"></span>
+              <span class="w-3.5 h-3.5 border-2 border-black bg-neo-lime inline-block"></span>
+              <span class="ml-2 text-xs font-mono font-black text-black uppercase">root@sbyuxD:~# (bash)</span>
             </div>
 
-            <button onclick="rescanConsole()" class="px-3 py-1 rounded-full bg-white/5 hover:bg-white/10 text-[11px] font-mono text-white/70 hover:text-white flex items-center gap-1.5 transition-colors">
-              <i data-lucide="rotate-cw" class="w-3 h-3 text-accent-clayLight"></i>
-              <span>Re-scan</span>
+            <button onclick="rescanConsole()" class="px-3 py-1 bg-white hover:bg-neo-pink text-black text-xs font-mono font-black border-2 border-black flex items-center gap-1.5 transition-colors neo-btn">
+              <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
+              <span>RE-SCAN</span>
             </button>
           </div>
 
-          <div id="terminal-body" class="p-6 font-mono text-xs leading-relaxed bg-accent-stone text-white/70 min-h-[190px] max-h-[250px] overflow-y-auto space-y-1 select-text">
+          <div id="terminal-body" class="p-5 font-mono text-xs leading-relaxed bg-black text-neo-lime min-h-[200px] max-h-[260px] overflow-y-auto space-y-1 select-text">
             <div id="terminal-content"></div>
             <div id="terminal-active-line" class="text-white">
               <span id="terminal-typing"></span><span class="terminal-cursor"></span>
@@ -258,133 +282,151 @@
           </div>
         </div>
 
-        <div class="p-8 sm:p-10 bg-cream-card border border-cream-border squircle flex flex-col items-center justify-center text-center space-y-4 shadow-sm">
-          <div class="max-w-md space-y-1">
-            <h3 class="font-serif text-2xl text-cream-title">Dokumentasi API</h3>
-            <p class="text-xs text-cream-muted font-medium">Jelajahi seluruh koleksi endpoint per-kategori dan jalankan testing langsung.</p>
+        <!-- DOCS CALLOUT BANNER -->
+        <div class="p-8 sm:p-10 bg-neo-yellow border-3 border-black neo-box flex flex-col md:flex-row items-center justify-between gap-6 shadow-neo-lg">
+          <div class="space-y-2 text-center md:text-left">
+            <h3 class="text-3xl font-black text-black uppercase tracking-tight">Dokumentasi API</h3>
+            <p class="text-xs sm:text-sm font-bold text-black max-w-lg">
+              Jelajahi seluruh koleksi endpoint per-kategori dan jalankan testing secara interactive langsung.
+            </p>
           </div>
 
-          <button onclick="smoothNavigate('docs')" class="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-2xl bg-accent-clay hover:bg-accent-clayHover text-white font-bold text-sm tracking-wide shadow-lg shadow-accent-clay/20 transition-all hover:scale-[1.02] active:scale-[0.98]">
-            <span>DOCS</span>
-            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          <button onclick="smoothNavigate('docs')" class="neo-btn px-8 py-4 bg-neo-pink text-white hover:bg-black font-black text-sm tracking-wider uppercase flex items-center gap-3 shrink-0">
+            <span>EXPLORE DOCS</span>
+            <i data-lucide="arrow-right" class="w-5 h-5"></i>
           </button>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div class="p-5 bg-cream-card border border-cream-border squircle shadow-sm">
-            <div class="text-xs font-mono text-cream-muted mb-1">Server Latency</div>
-            <div id="bottom-latency" class="text-2xl font-bold font-mono text-emerald-600">...ms</div>
+        <!-- STATS CARDS -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          <div class="p-5 bg-white border-3 border-black neo-box">
+            <div class="text-xs font-mono font-bold text-black uppercase mb-1">Server Latency</div>
+            <div id="bottom-latency" class="text-3xl font-black font-mono text-neo-lime drop-shadow-[2px_2px_0px_#000]">...ms</div>
           </div>
 
-          <div class="p-5 bg-cream-card border border-cream-border squircle shadow-sm">
-            <div class="text-xs font-mono text-cream-muted mb-1">Total Endpoints</div>
-            <div id="stat-total" class="text-2xl font-bold font-mono text-cream-title">-</div>
+          <div class="p-5 bg-neo-cyan border-3 border-black neo-box">
+            <div class="text-xs font-mono font-bold text-black uppercase mb-1">Total Endpoints</div>
+            <div id="stat-total" class="text-3xl font-black font-mono text-black">-</div>
           </div>
 
-          <div class="p-5 bg-cream-card border border-cream-border squircle shadow-sm flex items-center justify-between">
+          <div class="p-5 bg-neo-orange border-3 border-black neo-box flex items-center justify-between">
             <div>
-              <div class="text-xs font-mono text-cream-muted mb-1">Total Kategori</div>
-              <div id="stat-categories" class="text-2xl font-bold font-mono text-accent-clay">-</div>
+              <div class="text-xs font-mono font-bold text-black uppercase mb-1">Total Kategori</div>
+              <div id="stat-categories" class="text-3xl font-black font-mono text-black">-</div>
             </div>
-            <button onclick="checkLatency()" class="p-2 rounded-xl bg-cream-100 hover:bg-cream-200 text-cream-title transition-colors" title="Check Latency">
-              <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+            <button onclick="checkLatency()" class="p-3 bg-white border-2 border-black neo-btn" title="Check Latency">
+              <i data-lucide="refresh-cw" class="w-5 h-5 text-black"></i>
             </button>
           </div>
         </div>
+
       </section>
     </div>
 
+    <!-- VIEW: DOCS -->
     <div id="view-docs" class="view-transition view-leave hidden space-y-8">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-cream-border">
-        <div class="flex items-center gap-3">
-          <button onclick="smoothNavigate('home')" class="p-2 rounded-xl bg-cream-card hover:bg-cream-200 border border-cream-border text-cream-title transition-colors" title="Kembali ke Home">
-            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+      
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b-4 border-black">
+        <div class="flex items-center gap-4">
+          <button onclick="smoothNavigate('home')" class="p-3 bg-neo-yellow border-3 border-black neo-btn" title="Kembali ke Home">
+            <i data-lucide="arrow-left" class="w-5 h-5 font-black text-black"></i>
           </button>
           <div>
-            <h2 class="font-serif text-3xl text-cream-title">Katalog Endpoint</h2>
-            <p class="text-xs text-cream-muted font-medium">Buka folder kategori untuk melihat daftar endpoint di dalamnya</p>
+            <h2 class="text-3xl font-black text-black uppercase tracking-tight">Katalog Endpoint</h2>
+            <p class="text-xs font-bold text-black">Buka folder kategori untuk melihat daftar endpoint di dalamnya</p>
           </div>
         </div>
 
-        <div class="relative w-full sm:w-72">
-          <i data-lucide="search" class="w-4 h-4 text-cream-muted absolute left-3.5 top-1/2 -translate-y-1/2"></i>
-          <input type="text" id="search-input" placeholder="Cari endpoint..." class="w-full pl-10 pr-4 py-2 text-xs font-mono bg-cream-card border border-cream-border rounded-xl text-cream-title placeholder-cream-muted focus:border-accent-clay transition-colors" />
+        <div class="relative w-full sm:w-80">
+          <i data-lucide="search" class="w-4 h-4 text-black absolute left-3.5 top-1/2 -translate-y-1/2 font-bold"></i>
+          <input type="text" id="search-input" placeholder="Cari endpoint..." class="w-full pl-10 pr-4 py-3 text-xs font-mono font-bold bg-white border-3 border-black shadow-neo-sm focus:bg-neo-yellow text-black placeholder-black transition-colors" />
         </div>
       </div>
 
-      <div class="flex items-center gap-2 overflow-x-auto pb-2" id="category-tabs"></div>
+      <!-- CATEGORY TABS -->
+      <div class="flex items-center gap-3 overflow-x-auto pb-3" id="category-tabs"></div>
 
-      <div id="endpoint-container" class="space-y-4">
-        <div class="text-center py-16 text-cream-muted text-xs font-mono">
-          Memuat katalog...
+      <!-- ENDPOINTS CONTAINER -->
+      <div id="endpoint-container" class="space-y-6">
+        <div class="text-center py-16 font-mono font-bold text-sm bg-neo-yellow border-3 border-black neo-box">
+          MEMUAT KATALOG ENDPOINT...
         </div>
       </div>
+
     </div>
+
   </main>
 
-  <div id="modal-backdrop" class="fixed inset-0 bg-[#161311]/50 backdrop-blur-md z-50 opacity-0 pointer-events-none transition-opacity duration-350" onclick="closeModal()"></div>
+  <!-- MODAL BACKDROP -->
+  <div id="modal-backdrop" class="fixed inset-0 bg-black/70 z-50 opacity-0 pointer-events-none transition-opacity duration-300" onclick="closeModal()"></div>
 
-  <div id="modal-sheet" class="modal-sheet fixed inset-x-0 bottom-0 z-50 max-w-2xl mx-auto max-h-[88vh] bg-cream-card border-t sm:border-x sm:rounded-t-3xl border-cream-border flex flex-col shadow-2xl">
-    <div class="flex items-center justify-between px-6 py-4 border-b border-cream-border bg-cream-50 sm:rounded-t-3xl">
+  <!-- MODAL SHEET (NEUBRUTALISM) -->
+  <div id="modal-sheet" class="modal-sheet fixed inset-x-0 bottom-0 z-50 max-w-3xl mx-auto max-h-[90vh] bg-white border-t-4 border-x-4 border-black flex flex-col shadow-neo-xl">
+    
+    <div class="flex items-center justify-between px-6 py-4 bg-neo-yellow border-b-4 border-black">
       <div class="flex items-center gap-3">
-        <span id="modal-badge-method" class="px-2.5 py-0.5 text-[10px] font-mono font-bold rounded-lg bg-accent-clay/10 text-accent-clay border border-accent-clay/20">GET</span>
-        <h3 id="modal-title" class="font-bold text-sm text-cream-title font-sans">Endpoint Title</h3>
+        <span id="modal-badge-method" class="px-3 py-1 text-xs font-mono font-black border-2 border-black bg-neo-lime text-black shadow-neo-sm">GET</span>
+        <h3 id="modal-title" class="font-black text-base text-black uppercase font-sans tracking-tight">Endpoint Title</h3>
       </div>
-      <button onclick="closeModal()" class="p-1.5 rounded-lg text-cream-muted hover:text-cream-title hover:bg-cream-200 transition-colors">
-        <i data-lucide="x" class="w-4 h-4"></i>
+      <button onclick="closeModal()" class="p-2 bg-neo-pink text-white border-2 border-black neo-btn">
+        <i data-lucide="x" class="w-5 h-5"></i>
       </button>
     </div>
 
     <div class="flex-1 overflow-y-auto p-6 space-y-6">
+      
       <div>
-        <label class="block text-xs font-bold text-cream-muted mb-1 uppercase font-mono">Deskripsi</label>
-        <p id="modal-desc" class="text-xs text-cream-body leading-relaxed font-medium">-</p>
+        <label class="block text-xs font-black text-black uppercase font-mono mb-1">Deskripsi</label>
+        <p id="modal-desc" class="text-xs text-black font-bold bg-neo-bg p-3 border-2 border-black leading-relaxed">-</p>
       </div>
 
       <div>
-        <label class="block text-xs font-bold text-cream-muted mb-1 uppercase font-mono">Path Route</label>
-        <div class="flex items-center justify-between p-3 rounded-2xl bg-cream-100 border border-cream-border font-mono text-xs text-accent-clay">
+        <label class="block text-xs font-black text-black uppercase font-mono mb-1">Path Route</label>
+        <div class="flex items-center justify-between p-3 bg-neo-cyan border-2 border-black font-mono text-xs font-black text-black shadow-neo-sm">
           <span id="modal-path">/</span>
-          <button onclick="copyRoute()" class="text-cream-muted hover:text-cream-title transition-colors" title="Salin Route">
-            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+          <button onclick="copyRoute()" class="p-1 bg-white border-2 border-black neo-btn" title="Salin Route">
+            <i data-lucide="copy" class="w-4 h-4 text-black"></i>
           </button>
         </div>
       </div>
 
       <div>
-        <label class="block text-xs font-bold text-cream-muted mb-2 uppercase font-mono">Input Parameter</label>
+        <label class="block text-xs font-black text-black uppercase font-mono mb-2">Input Parameter</label>
         <form id="modal-form" onsubmit="executeRequest(event)" class="space-y-4">
           <div id="modal-inputs" class="space-y-3"></div>
 
-          <button type="submit" id="btn-submit" class="w-full py-3 px-4 rounded-2xl bg-accent-clay hover:bg-accent-clayHover text-white text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-md shadow-accent-clay/20">
-            <span id="btn-submit-icon"><i data-lucide="send" class="w-3.5 h-3.5"></i></span>
+          <button type="submit" id="btn-submit" class="w-full py-4 px-6 bg-neo-lime hover:bg-neo-yellow text-black text-xs font-black uppercase flex items-center justify-center gap-2 neo-btn shadow-neo">
+            <span id="btn-submit-icon"><i data-lucide="send" class="w-4 h-4"></i></span>
             <span id="btn-submit-text">Jalankan Request</span>
           </button>
         </form>
       </div>
 
+      <!-- RESPONSE SECTION -->
       <div id="modal-response-wrapper" class="space-y-2 hidden">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
-            <label class="text-xs font-bold text-cream-muted font-mono">Response Payload</label>
-            <span id="modal-status-pill" class="text-[10px] font-mono px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">200 OK</span>
-            <span id="modal-time-pill" class="text-[10px] font-mono text-cream-muted">0ms</span>
+            <label class="text-xs font-black text-black uppercase font-mono">Response Payload</label>
+            <span id="modal-status-pill" class="text-xs font-mono font-black px-2 py-0.5 border-2 border-black bg-neo-lime text-black">200 OK</span>
+            <span id="modal-time-pill" class="text-xs font-mono font-bold text-black">0ms</span>
           </div>
-          <button onclick="copyResponse()" class="text-xs text-accent-clay hover:text-accent-clayHover font-semibold flex items-center gap-1 transition-colors">
-            <i data-lucide="copy" class="w-3 h-3"></i>
+          <button onclick="copyResponse()" class="text-xs font-black font-mono bg-neo-yellow px-3 py-1 border-2 border-black neo-btn flex items-center gap-1">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
             <span>Salin JSON</span>
           </button>
         </div>
 
-        <div class="rounded-2xl bg-cream-50 border border-cream-border p-4 overflow-x-auto max-h-64 select-text">
-          <pre id="modal-response-body" class="font-mono text-xs leading-relaxed text-cream-title"></pre>
+        <div class="bg-black border-3 border-black p-4 overflow-x-auto max-h-72 select-text shadow-neo">
+          <pre id="modal-response-body" class="font-mono text-xs leading-relaxed text-white"></pre>
         </div>
       </div>
+
     </div>
   </div>
 
-  <footer class="border-t border-cream-border py-8 px-6 bg-cream-50 mt-auto">
-    <div class="max-w-5xl mx-auto flex items-center justify-center text-xs font-mono text-cream-muted">
+  <!-- FOOTER -->
+  <footer class="border-t-4 border-black py-8 px-6 bg-neo-yellow mt-auto">
+    <div class="max-w-5xl mx-auto flex items-center justify-center text-xs font-mono font-black text-black uppercase">
       <div>© 2026 sbyuxD. All rights reserved.</div>
     </div>
   </footer>
@@ -409,11 +451,11 @@
       document.body.appendChild(ripple);
 
       requestAnimationFrame(() => {
-        ripple.style.transform = 'scale(2.6)';
+        ripple.style.transform = 'scale(2.5)';
         ripple.style.opacity = '0';
       });
 
-      setTimeout(() => ripple.remove(), 450);
+      setTimeout(() => ripple.remove(), 400);
     });
 
     function toggleDynamicIsland() {
@@ -478,7 +520,7 @@
           destination.classList.remove('view-leave');
           destination.classList.add('view-enter');
         }, 50);
-      }, 250);
+      }, 200);
     }
 
     const notify = (icon, title) => {
@@ -489,7 +531,7 @@
         showConfirmButton: false,
         timer: 1600,
         customClass: { popup: 'custom-swal-center' },
-        iconColor: icon === 'success' ? '#059669' : '#C05C2B'
+        iconColor: '#000000'
       });
     };
 
@@ -550,13 +592,13 @@
       contentEl.innerHTML = '';
 
       await typeTerminalLine('[  OK  ] Native Node.js ESM Runtime Initialized', 8);
-      commitTerminalLine('text-emerald-400 font-mono');
+      commitTerminalLine('text-neo-lime font-mono font-bold');
 
       await typeTerminalLine('[  OK  ] Synchronized Router Engine with Plugin Watcher', 8);
-      commitTerminalLine('text-emerald-400 font-mono');
+      commitTerminalLine('text-neo-lime font-mono font-bold');
 
       await typeTerminalLine('root@sbyuxD:~# wolfapi-cli scan --active', 12);
-      commitTerminalLine('text-white font-bold');
+      commitTerminalLine('text-neo-yellow font-bold');
 
       const categories = Object.keys(registry);
       let totalLoaded = 0;
@@ -567,7 +609,7 @@
           totalLoaded++;
           const method = (ep.method && ep.method[0]) || 'GET';
           await typeTerminalLine(`[LOADED] ${method} ${ep.endpoint}`, 5);
-          commitTerminalLine('text-accent-clayLight font-mono');
+          commitTerminalLine('text-neo-cyan font-mono');
         }
       }
 
@@ -604,7 +646,7 @@
         }
       } catch (err) {
         document.getElementById('endpoint-container').innerHTML = `
-          <div class="text-center py-12 text-rose-600 text-xs font-mono">
+          <div class="text-center py-12 bg-neo-pink text-white font-black border-3 border-black neo-box">
             Gagal memuat daftar endpoint dari server.
           </div>
         `;
@@ -614,7 +656,7 @@
     function buildCategoryTabs() {
       const container = document.getElementById('category-tabs');
       container.innerHTML = `
-        <button onclick="filterCategory('all')" class="px-4 py-2 rounded-xl text-xs font-bold transition-all ${currentCategory === 'all' ? 'bg-accent-clay text-white shadow-sm' : 'bg-cream-card text-cream-body hover:text-cream-title border border-cream-border'}">
+        <button onclick="filterCategory('all')" class="px-5 py-2.5 text-xs font-black uppercase neo-btn ${currentCategory === 'all' ? 'bg-neo-yellow text-black' : 'bg-white text-black'}">
           Semua Folder
         </button>
       `;
@@ -622,7 +664,7 @@
       Object.keys(registry).forEach(cat => {
         const btn = document.createElement('button');
         btn.onclick = () => filterCategory(cat);
-        btn.className = `px-4 py-2 rounded-xl text-xs font-bold capitalize transition-all ${currentCategory === cat ? 'bg-accent-clay text-white shadow-sm' : 'bg-cream-card text-cream-body hover:text-cream-title border border-cream-border'}`;
+        btn.className = `px-5 py-2.5 text-xs font-black uppercase neo-btn ${currentCategory === cat ? 'bg-neo-pink text-white' : 'bg-white text-black'}`;
         btn.textContent = cat;
         container.appendChild(btn);
       });
@@ -680,26 +722,26 @@
         if (currentCategory === 'all' && !searchQuery) {
           const isOpen = openFolders.has(cat);
           const folderBox = document.createElement('div');
-          folderBox.className = 'folder-wrapper bg-cream-card border border-cream-border overflow-hidden shadow-sm';
+          folderBox.className = 'bg-white border-3 border-black neo-box overflow-hidden shadow-neo';
 
           folderBox.innerHTML = `
-            <div onclick="toggleFolder('${cat}')" class="p-5 flex items-center justify-between cursor-pointer hover:bg-cream-50 transition-colors select-none">
+            <div onclick="toggleFolder('${cat}')" class="p-5 flex items-center justify-between cursor-pointer bg-neo-yellow hover:bg-neo-cyan transition-colors select-none border-b-3 border-black">
               <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-2xl bg-orange-50 border border-orange-200 text-accent-clay flex items-center justify-center shrink-0">
-                  <i data-lucide="${isOpen ? 'folder-open' : 'folder'}" id="folder-icon-${cat}" class="w-5 h-5"></i>
+                <div class="w-10 h-10 bg-white border-2 border-black flex items-center justify-center shrink-0 shadow-neo-sm">
+                  <i data-lucide="${isOpen ? 'folder-open' : 'folder'}" id="folder-icon-${cat}" class="w-5 h-5 text-black"></i>
                 </div>
                 <div>
-                  <h3 class="text-sm font-bold uppercase tracking-wider text-cream-title font-mono">${cat}</h3>
-                  <span class="text-xs text-cream-muted font-medium">${endpoints.length} endpoints</span>
+                  <h3 class="text-sm font-black uppercase tracking-wider text-black font-mono">${cat}</h3>
+                  <span class="text-xs text-black font-bold">${endpoints.length} endpoints</span>
                 </div>
               </div>
-              <div class="w-8 h-8 rounded-full bg-cream-100 flex items-center justify-center text-cream-muted">
-                <i data-lucide="chevron-down" id="folder-chevron-${cat}" class="w-4 h-4 transition-transform duration-300" style="transform: ${isOpen ? 'rotate(180deg)' : 'rotate(0deg)'}"></i>
+              <div class="w-9 h-9 bg-white border-2 border-black flex items-center justify-center text-black shadow-neo-sm">
+                <i data-lucide="chevron-down" id="folder-chevron-${cat}" class="w-5 h-5 font-black transition-transform duration-300" style="transform: ${isOpen ? 'rotate(180deg)' : 'rotate(0deg)'}"></i>
               </div>
             </div>
             <div id="folder-content-${cat}" class="folder-content ${isOpen ? 'open' : ''}">
               <div class="overflow-hidden">
-                <div class="p-5 pt-1 grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-cream-border/60" id="folder-grid-${cat}"></div>
+                <div class="p-5 bg-neo-bg grid grid-cols-1 md:grid-cols-2 gap-4 border-t-3 border-black" id="folder-grid-${cat}"></div>
               </div>
             </div>
           `;
@@ -709,7 +751,7 @@
           const grid = document.getElementById(`folder-grid-${cat}`);
           endpoints.forEach((ep, i) => {
             const cardEl = createEndpointCard(ep);
-            cardEl.style.animationDelay = `${i * 45}ms`;
+            cardEl.style.animationDelay = `${i * 30}ms`;
             grid.appendChild(cardEl);
           });
         } else {
@@ -717,10 +759,10 @@
           block.className = 'space-y-4';
 
           block.innerHTML = `
-            <div class="flex items-center gap-2 pb-1.5 border-b border-cream-border">
-              <span class="w-2 h-2 rounded-full bg-accent-clay"></span>
-              <h3 class="text-xs font-bold uppercase tracking-wider text-cream-title font-mono">${cat}</h3>
-              <span class="text-[11px] text-cream-muted font-mono">(${endpoints.length})</span>
+            <div class="flex items-center gap-2 pb-2 border-b-3 border-black">
+              <span class="w-3 h-3 border-2 border-black bg-neo-pink"></span>
+              <h3 class="text-xs font-black uppercase tracking-wider text-black font-mono">${cat}</h3>
+              <span class="text-xs text-black font-mono font-bold">(${endpoints.length})</span>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="grid-${cat}"></div>
           `;
@@ -730,7 +772,7 @@
           const grid = document.getElementById(`grid-${cat}`);
           endpoints.forEach((ep, i) => {
             const cardEl = createEndpointCard(ep);
-            cardEl.style.animationDelay = `${i * 45}ms`;
+            cardEl.style.animationDelay = `${i * 30}ms`;
             grid.appendChild(cardEl);
           });
         }
@@ -738,8 +780,8 @@
 
       if (count === 0) {
         container.innerHTML = `
-          <div class="text-center py-16 text-cream-muted text-xs font-mono">
-            Tidak ada endpoint yang cocok dengan pencarian.
+          <div class="text-center py-16 bg-neo-orange border-3 border-black font-mono font-black text-sm neo-box">
+            TIDAK ADA ENDPOINT YANG COCOK DENGAN PENCARIAN.
           </div>
         `;
       }
@@ -749,25 +791,25 @@
 
     function createEndpointCard(ep) {
       const card = document.createElement('div');
-      card.className = 'p-5 bg-cream-50 border border-cream-border card-item cursor-pointer flex flex-col justify-between';
+      card.className = 'p-5 bg-white card-item cursor-pointer flex flex-col justify-between';
       card.onclick = () => openModal(ep);
 
       const method = (ep.method && ep.method[0]) || 'GET';
-      const methodBadge = method === 'POST' ? 'text-blue-700 bg-blue-50 border-blue-200' : 'text-accent-clay bg-orange-50 border-orange-200';
+      const methodBadge = method === 'POST' ? 'bg-neo-cyan text-black' : 'bg-neo-lime text-black';
 
       card.innerHTML = `
         <div>
           <div class="flex items-center justify-between gap-2 mb-2">
-            <h4 class="text-sm font-bold text-cream-title">${ep.name}</h4>
-            <span class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold border ${methodBadge}">${method}</span>
+            <h4 class="text-sm font-black text-black uppercase tracking-tight">${ep.name}</h4>
+            <span class="px-2.5 py-0.5 border-2 border-black text-[10px] font-mono font-black shadow-neo-sm ${methodBadge}">${method}</span>
           </div>
-          <p class="text-xs text-cream-body leading-relaxed mb-4 font-medium">${ep.description || 'Tanpa deskripsi tambahan.'}</p>
+          <p class="text-xs text-black leading-relaxed mb-4 font-bold">${ep.description || 'Tanpa deskripsi tambahan.'}</p>
         </div>
-        <div class="flex items-center justify-between pt-3 border-t border-cream-border/70 text-xs font-mono text-cream-muted">
-          <span class="truncate max-w-[200px] text-accent-clay font-medium">${ep.endpoint}</span>
-          <div class="flex items-center gap-1 text-cream-body hover:text-accent-clay">
+        <div class="flex items-center justify-between pt-3 border-t-2 border-black text-xs font-mono">
+          <span class="truncate max-w-[200px] text-black font-bold bg-neo-yellow px-2 py-0.5 border border-black">${ep.endpoint}</span>
+          <div class="flex items-center gap-1 font-black uppercase text-black hover:underline">
             <span>Tes</span>
-            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
           </div>
         </div>
       `;
@@ -794,7 +836,7 @@
 
       if (keys.length === 0) {
         inputsContainer.innerHTML = `
-          <div class="text-xs text-cream-muted p-3.5 rounded-2xl bg-cream-100 border border-cream-border font-mono">
+          <div class="text-xs font-bold font-mono text-black p-3 bg-neo-yellow border-2 border-black">
             Endpoint ini tidak memerlukan parameter input.
           </div>
         `;
@@ -808,10 +850,10 @@
           group.className = 'space-y-1.5';
           group.innerHTML = `
             <div class="flex items-center justify-between text-xs">
-              <label class="font-bold text-cream-title font-mono">${key} ${isRequired ? '<span class="text-rose-600">*</span>' : ''}</label>
-              <span class="text-[10px] text-cream-muted font-medium">${desc}</span>
+              <label class="font-black text-black font-mono uppercase">${key} ${isRequired ? '<span class="text-neo-pink">*</span>' : ''}</label>
+              <span class="text-[10px] font-bold text-black">${desc}</span>
             </div>
-            <input type="text" name="${key}" ${isRequired ? 'required' : ''} placeholder="Nilai untuk ${key}..." class="w-full px-3.5 py-2.5 text-xs bg-cream-100 border border-cream-border rounded-xl text-cream-title placeholder-cream-muted focus:border-accent-clay transition-colors font-mono" />
+            <input type="text" name="${key}" ${isRequired ? 'required' : ''} placeholder="Nilai untuk ${key}..." class="w-full px-3.5 py-3 text-xs bg-white border-2 border-black font-mono font-bold text-black placeholder-black focus:bg-neo-cyan shadow-neo-sm transition-colors" />
           `;
           inputsContainer.appendChild(group);
         });
@@ -854,7 +896,7 @@
       submitBtn.disabled = true;
       submitBtn.classList.add('opacity-60');
       submitText.textContent = 'Memproses Request...';
-      submitIcon.innerHTML = '<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i>';
+      submitIcon.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>';
       lucide.createIcons();
 
       const formData = new FormData(e.target);
@@ -892,8 +934,8 @@
 
         statusPill.textContent = `${response.status} ${response.statusText || 'OK'}`;
         statusPill.className = response.ok 
-          ? 'text-[10px] font-mono px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200'
-          : 'text-[10px] font-mono px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200';
+          ? 'text-xs font-mono font-black px-2 py-0.5 border-2 border-black bg-neo-lime text-black'
+          : 'text-xs font-mono font-black px-2 py-0.5 border-2 border-black bg-neo-pink text-white';
 
         timePill.textContent = `${duration}ms`;
         responseBody.innerHTML = formatCodeHighlight(json);
@@ -910,7 +952,7 @@
         rawResponseText = JSON.stringify(errorObj, null, 2);
 
         statusPill.textContent = 'Error';
-        statusPill.className = 'text-[10px] font-mono px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200';
+        statusPill.className = 'text-xs font-mono font-black px-2 py-0.5 border-2 border-black bg-neo-pink text-white';
         timePill.textContent = `${duration}ms`;
         responseBody.innerHTML = formatCodeHighlight(errorObj);
         responseWrapper.classList.remove('hidden');
@@ -920,7 +962,7 @@
         submitBtn.disabled = false;
         submitBtn.classList.remove('opacity-60');
         submitText.textContent = 'Jalankan Request';
-        submitIcon.innerHTML = '<i data-lucide="send" class="w-3.5 h-3.5"></i>';
+        submitIcon.innerHTML = '<i data-lucide="send" class="w-4 h-4"></i>';
         lucide.createIcons();
       }
     }
