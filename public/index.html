@@ -21,7 +21,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  
   <script>
     tailwind.config = {
       theme: {
@@ -32,31 +31,25 @@
           },
           colors: {
             neo: {
-              bg: '#121212',       /* Dark Background yang nyaman di mata */
-              surface: '#1E1E24',  /* Latar card/elemen */
-              border: '#000000',   /* Border hitam tegas khas neobrutalism */
-              yellow: '#FFE600',   /* Soft Neon Accent */
-              cyan: '#38BDF8',
-              pink: '#F472B6',
-              lime: '#4ADE80',
-              purple: '#C084FC',
-              orange: '#FB923C',
-              card: '#18181B',
-              text: '#F4F4F5',     /* Teks cerah kontras tinggi */
-              muted: '#A1A1AA',    /* Teks sekunder */
+              bg: '#0A0D14',        /* Deep Slate Navy (Sangat nyaman di mata) */
+              surface: '#121723',   /* Elevated Surface Card */
+              surfaceLighter: '#1A202C',
+              border: '#000000',    /* Border Tebal Khas Neobrutalisme */
+              accent: '#00F0FF',    /* Electric Cyan */
+              secondary: '#FF007F', /* Cyber Magenta */
+              violet: '#8B5CF6',
+              emerald: '#10B981',
+              card: '#121723',
+              text: '#F1F5F9',      /* Bright Slate Text */
+              muted: '#64748B',     /* Cool Gray Muted */
             }
           },
           boxShadow: {
-            'neo': '4px 4px 0px 0px #000000',
-            'neo-lg': '6px 6px 0px 0px #000000',
-            'neo-xl': '10px 10px 0px 0px #000000',
+            'neo': '5px 5px 0px 0px #000000',
+            'neo-accent': '5px 5px 0px 0px #00F0FF',
+            'neo-magenta': '5px 5px 0px 0px #FF007F',
+            'neo-lg': '8px 8px 0px 0px #000000',
             'neo-sm': '3px 3px 0px 0px #000000',
-            'neo-glow': '4px 4px 15px rgba(255, 230, 0, 0.15)',
-          },
-          borderRadius: {
-            'neo': '20px',
-            'neo-lg': '28px',
-            'neo-asym': '24px 8px 24px 8px', /* Bentuk asimetris modern */
           }
         }
       }
@@ -69,76 +62,74 @@
       outline: none;
     }
     body {
-      background-color: #121212;
-      color: #F4F4F5;
+      background-color: #0A0D14;
+      color: #F1F5F9;
     }
     
-    /* Scrollbar Dark & Modern */
+    /* Scrollbar High-Tech Minimalis */
     ::-webkit-scrollbar {
-      width: 10px;
-      height: 10px;
+      width: 8px;
+      height: 8px;
     }
     ::-webkit-scrollbar-track {
-      background: #18181B;
+      background: #0A0D14;
       border-left: 2px solid #000;
     }
     ::-webkit-scrollbar-thumb {
-      background: #38BDF8;
+      background: #00F0FF;
       border: 2px solid #000;
-      border-radius: 6px;
+      border-radius: 4px;
     }
     ::-webkit-scrollbar-thumb:hover {
-      background: #F472B6;
+      background: #FF007F;
     }
 
-    /* Dynamic Island Soft Glass-Brutalism */
+    /* Dynamic Island Asimetris & Modern */
     .dynamic-island {
-      background: #18181B;
+      background: rgba(18, 23, 35, 0.9);
+      backdrop-filter: blur(12px);
       border: 3px solid #000000;
-      box-shadow: 4px 4px 0px 0px #FFE600;
-      border-radius: 9999px;
+      box-shadow: 4px 4px 0px 0px #00F0FF;
+      border-radius: 20px 6px 20px 6px;
       transition: all 300ms cubic-bezier(0.16, 1, 0.3, 1);
     }
     .dynamic-island:hover {
       transform: translate(-2px, -2px);
-      box-shadow: 6px 6px 0px 0px #FFE600;
-    }
-    .dynamic-island:active {
-      transform: translate(2px, 2px);
-      box-shadow: 2px 2px 0px 0px #FFE600;
+      box-shadow: 6px 6px 0px 0px #FF007F;
     }
     .dynamic-island.expanded {
-      border-radius: 1.5rem;
-      box-shadow: 6px 6px 0px 0px #38BDF8;
+      border-radius: 24px;
+      box-shadow: 6px 6px 0px 0px #00F0FF;
     }
 
-    /* Card & Container dengan sudut melengkung modern */
+    /* Box Kustom dengan Bentuk Asimetris */
     .neo-box {
-      background-color: #18181B;
+      background-color: #121723;
       border: 3px solid #000000;
-      border-radius: 20px;
-      box-shadow: 5px 5px 0px 0px #000000;
+      border-radius: 20px 4px 20px 4px; /* Unik & Beda */
+      box-shadow: 6px 6px 0px 0px #000000;
       transition: all 200ms ease;
     }
 
-    /* Tombol Interaktif */
+    /* Tombol Pro & Cyber-Brutalist */
     .neo-btn {
       border: 3px solid #000000;
-      border-radius: 14px;
+      border-radius: 12px 4px 12px 4px;
       box-shadow: 4px 4px 0px 0px #000000;
-      transition: all 120ms ease;
+      transition: all 120ms cubic-bezier(0.16, 1, 0.3, 1);
       font-weight: 800;
+      letter-spacing: 0.05em;
     }
     .neo-btn:hover {
       transform: translate(-3px, -3px);
-      box-shadow: 7px 7px 0px 0px #000000;
+      box-shadow: 7px 7px 0px 0px #00F0FF;
     }
     .neo-btn:active {
       transform: translate(2px, 2px);
       box-shadow: 1px 1px 0px 0px #000000;
     }
 
-    /* Folder Dropdown Smooth Grid */
+    /* Grid Folder Dropdown Smooth Collapse */
     .folder-content {
       display: grid;
       grid-template-rows: 0fr;
@@ -148,26 +139,25 @@
       grid-template-rows: 1fr;
     }
 
-    /* Item Card dengan Aksen Hover Soft Neon */
+    /* Item Card dengan Angle Cut (Bentuk Khusus) */
     .card-item {
-      background-color: #1E1E24;
+      background-color: #1A202C;
       border: 3px solid #000000;
-      border-radius: 16px;
-      box-shadow: 4px 4px 0px 0px #000000;
+      border-radius: 16px 4px 16px 4px;
+      box-shadow: 5px 5px 0px 0px #000000;
       transition: all 200ms ease;
       animation: cardAppear 250ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
     }
     .card-item:hover {
-      transform: translate(-3px, -3px);
-      box-shadow: 7px 7px 0px 0px #38BDF8;
-      border-color: #000000;
-      background-color: #27272A !important;
+      transform: translate(-4px, -4px);
+      box-shadow: 8px 8px 0px 0px #00F0FF;
+      background-color: #222A3A !important;
     }
 
     @keyframes cardAppear {
       from {
         opacity: 0;
-        transform: translateY(12px) scale(0.98);
+        transform: translateY(12px) scale(0.96);
       }
       to {
         opacity: 1;
@@ -175,18 +165,19 @@
       }
     }
 
-    /* Modal / Bottom Sheet */
+    /* Modal Sheet Professional Glass */
     .modal-sheet {
       transform: translateY(100%);
       transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
       border-radius: 28px 28px 0 0;
       border-top: 4px solid #000;
+      background: #121723;
     }
     .modal-sheet.active {
       transform: translateY(0);
     }
 
-    /* Touch Effect */
+    /* Ripple Accent Cyan */
     .touch-ripple {
       position: fixed;
       border-radius: 9999px;
@@ -194,19 +185,19 @@
       z-index: 9999;
       transform: scale(0.2);
       opacity: 0.85;
-      background: #FFE600;
+      background: #00F0FF;
       border: 2px solid #000;
       transition: transform 400ms ease, opacity 400ms ease;
     }
 
-    /* Terminal Cursor */
+    /* Terminal Cursor Cyan */
     .terminal-cursor {
       display: inline-block;
       width: 8px;
       height: 18px;
-      background-color: #4ADE80;
+      background-color: #00F0FF;
       vertical-align: middle;
-      border-radius: 2px;
+      box-shadow: 0 0 8px #00F0FF;
       animation: blinkCursor 600ms infinite steps(1);
     }
     @keyframes blinkCursor {
@@ -214,29 +205,30 @@
       50% { opacity: 0; }
     }
 
-    /* SweetAlert Custom Dark Neobrutalism */
+    /* SweetAlert Professional Neobrutalism */
     .swal2-popup.custom-swal-center {
-      background: #18181B !important;
+      background: #121723 !important;
       border: 4px solid #000000 !important;
-      border-radius: 20px !important;
+      border-radius: 20px 4px 20px 4px !important;
       padding: 1.5rem !important;
-      box-shadow: 8px 8px 0px 0px #FFE600 !important;
+      box-shadow: 8px 8px 0px 0px #00F0FF !important;
     }
     .swal2-title {
       font-size: 1.2rem !important;
       font-weight: 900 !important;
       font-family: "Space Grotesk", sans-serif !important;
-      color: #F4F4F5 !important;
+      color: #F1F5F9 !important;
       text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
 
-    /* Highlight JSON Syntax */
-    .json-key { color: #C084FC; font-weight: 700; }
-    .json-string { color: #4ADE80; }
-    .json-number { color: #FB923C; font-weight: 700; }
-    .json-boolean { color: #F472B6; font-weight: 900; }
-    .json-null { color: #A1A1AA; font-style: italic; }
-</style>  
+    /* High-Contrast JSON Syntax Highlighter */
+    .json-key { color: #8B5CF6; font-weight: 700; }
+    .json-string { color: #10B981; }
+    .json-number { color: #FF007F; font-weight: 700; }
+    .json-boolean { color: #00F0FF; font-weight: 900; }
+    .json-null { color: #64748B; font-style: italic; }
+      </style>
 </head>
 <body class="bg-neo-bg text-black min-h-screen flex flex-col font-sans antialiased selection:bg-neo-pink selection:text-white relative">
 
