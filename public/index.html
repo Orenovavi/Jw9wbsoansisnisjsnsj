@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DenzcOne — Rest API</title>
+  
+  <meta name="description" content="Simple lightweight API base made by justputu's" />
+  <meta property="og:title" content="DenzcOne — Rest API" />
+  <meta property="og:description" content="Simple lightweight API base made by justputu's" />
+  <meta property="og:image" content="/media/DenzcOne.jpg" />
+  <meta property="og:type" content="website" />
+  
+  <link rel="icon" type="image/jpeg" href="/media/DenzcOne.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800;900&family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet" />
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['"Space Grotesk"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            neo: {
+              yellow: '#FFE600',
+              pink: '#FF62A5',
+              cyan: '#00F0FF',
+              green: '#00E5A3',
+              purple: '#B800FF',
+              orange: '#FF6B00',
+              bg: '#F4F0EA',
+              black: '#121212',
+              card: '#FFFFFF'
+            }
+          },
+          boxShadow: {
+            'neo': '5px 5px 0px #121212',
+            'neo-lg': '8px 8px 0px #121212',
+            'neo-xl': '12px 12px 0px #121212',
+            'neo-sm': '3px 3px 0px #121212',
+            'neo-btn': '4px 4px 0px #121212',
+            'neo-press': '1px 1px 0px #121212'
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style>
+    * {
+      -webkit-tap-highlight-color: transparent;
+      outline: none;
+    }
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #F4F0EA;
+      border-left: 3px solid #121212;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #FFE600;
+      border: 3px solid #121212;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #FF62A5;
+    }
+    .neo-border {
+      border: 3.5px solid #121212;
+    }
+    .neo-button {
+      border: 3.5px solid #121212;
+      box-shadow: 5px 5px 0px #121212;
+      transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .neo-button:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 7px 7px 0px #121212;
+    }
+    .neo-button:active {
+      transform: translate(3px, 3px);
+      box-shadow: 2px 2px 0px #121212;
+    }
+    .neo-card {
+      border: 3.5px solid #121212;
+      box-shadow: 8px 8px 0px #121212;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .badge-tag {
+      border: 2px solid #121212;
+      box-shadow: 2px 2px 0px #121212;
+    }
+    .terminal-cursor {
+      display: inline-block;
+      width: 8px;
+      height: 16px;
+      background-color: #00F0FF;
+      vertical-align: sub;
+      animation: blinkCursor 600ms infinite steps(1);
+    }
+    @keyframes blinkCursor {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+    .modal-sheet {
+      transform: translateY(100%);
+      transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .modal-sheet.active {
+      transform: translateY(0);
+    }
+    .swal2-popup.custom-swal-neo {
+      background: #FFFFFF !important;
+      border: 4px solid #121212 !important;
+      border-radius: 0px !important;
+      box-shadow: 8px 8px 0px #121212 !important;
+      padding: 1.5rem !important;
+    }
+    .swal2-title {
+      font-size: 1.1rem !important;
+      font-weight: 800 !important;
+      font-family: 'Space Grotesk', sans-serif !important;
+      color: #121212 !important;
+    }
+    .json-key { color: #0052FF; font-weight: 700; }
+    .json-string { color: #D80056; font-weight: 600; }
+    .json-number { color: #008A52; font-weight: 700; }
+    .json-boolean { color: #B800FF; font-weight: 800; }
+    .json-null { color: #666; font-style: italic; }
+  </style>
+</head>
+<body class="bg-neo-bg text-neo-black min-h-screen flex flex-col font-sans antialiased relative selection:bg-neo-yellow selection:text-neo-black">
+
+  <!-- MARQUEE RUNNING TEXT HEADER -->
+  <div class="bg-neo-yellow border-b-4 border-neo-black py-2 font-mono font-extrabold text-xs tracking-wider overflow-hidden whitespace-nowrap uppercase select-none">
+    <div class="inline-block animate-marquee">
+      🔥 WELCOME TO DENZCONE REST API — BUILT BY JUSTPUTU'S 🔥 LIGHTWEIGHT & FAST API ENGINE 🔥 NEOBRUTALISM EDITION 🔥 ALWAYS ONLINE 🔥
+    </div>
+  </div>
+
+  <!-- NAVIGATION BAR -->
+  <header class="sticky top-0 z-40 bg-neo-card border-b-4 border-neo-black px-4 lg:px-8 py-3">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <a href="#" onclick="smoothNavigate('home')" class="flex items-center gap-3 group">
+        <div class="w-10 h-10 bg-neo-cyan border-2 border-neo-black shadow-neo-sm group-hover:rotate-6 transition-transform flex items-center justify-center font-display font-black text-xl">
+          D
+        </div>
+        <div class="flex flex-col">
+          <span class="font-display font-black text-xl leading-none tracking-tight">DenzcOne</span>
+          <span class="font-mono text-[10px] font-bold text-neo-black/60 tracking-wider">BY JUSTPUTU'S</span>
+        </div>
+      </a>
+
+      <!-- Quick Links / Actions -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <button onclick="smoothNavigate('docs')" class="neo-button bg-neo-green px-4 py-2 font-display font-bold text-xs sm:text-sm uppercase tracking-wide flex items-center gap-2">
+          <i data-lucide="book-open" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Katalog</span> Docs
+        </button>
+        <a href="https://wa.me/628895307489" target="_blank" class="neo-button bg-neo-pink px-3 py-2 text-xs sm:text-sm font-bold flex items-center gap-1">
+          <i data-lucide="message-square" class="w-4 h-4"></i>
+          <span class="hidden md:inline">Contact</span>
+        </a>
+        <a href="https://github.com/justputus/DenzcOne" target="_blank" class="neo-button bg-neo-cyan px-3 py-2 text-xs sm:text-sm font-bold">
+          <i data-lucide="github" class="w-4 h-4"></i>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+
+    <!-- VIEW 1: HOME PAGE -->
+    <div id="view-home" class="space-y-8">
+      
+      <!-- HERO BENTO GRID -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- MAIN BANNER CARD -->
+        <div class="lg:col-span-7 neo-card bg-neo-yellow p-6 sm:p-10 flex flex-col justify-between relative overflow-hidden">
+          <div class="absolute -right-8 -bottom-8 w-40 h-40 bg-neo-pink border-4 border-neo-black rounded-full opacity-30 pointer-events-none"></div>
+          
+          <div class="space-y-4 relative z-10">
+            <div class="inline-block bg-neo-card border-2 border-neo-black px-3 py-1 font-mono text-xs font-black shadow-neo-sm uppercase">
+              ⚡ Next-Gen REST Endpoint Base
+            </div>
+            <h1 class="font-display font-black text-4xl sm:text-6xl text-neo-black leading-none tracking-tight">
+              DENZCONE API
+            </h1>
+            <p class="font-sans font-bold text-sm sm:text-base text-neo-black/80 max-w-lg leading-relaxed">
+              Platform layanan API super cepat, ringan, dan simpel yang dirancang khusus oleh <span class="bg-neo-cyan px-1 border border-neo-black">justputu's</span> untuk mempermudah integrasi aplikasi & bot Anda.
+            </p>
+          </div>
+
+          <div class="pt-8 flex flex-wrap gap-4 relative z-10">
+            <button onclick="smoothNavigate('docs')" class="neo-button bg-neo-black text-white px-6 py-3 font-display font-black text-sm tracking-wider uppercase flex items-center gap-2">
+              <span>EXPLORE ENDPOINTS</span>
+              <i data-lucide="arrow-right" class="w-4 h-4 text-neo-yellow"></i>
+            </button>
+            <button onclick="rescanConsole()" class="neo-button bg-neo-card text-neo-black px-5 py-3 font-mono font-bold text-xs uppercase flex items-center gap-2">
+              <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+              <span>RE-SCAN API</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- LATENCY & METRICS STATS BENTO -->
+        <div class="lg:col-span-5 flex flex-col gap-6">
+          
+          <!-- LIVE STATUS BOX -->
+          <div class="neo-card bg-neo-pink p-6 flex items-center justify-between">
+            <div class="space-y-1">
+              <span class="font-mono text-xs font-extrabold uppercase tracking-wider text-neo-black/70">Server Latency</span>
+              <div id="bottom-latency" class="font-mono font-black text-4xl text-neo-black">...ms</div>
+            </div>
+            <button onclick="checkLatency()" class="neo-button bg-neo-card p-3" title="Ping Ulang">
+              <i data-lucide="activity" class="w-6 h-6"></i>
+            </button>
+          </div>
+
+          <!-- ENDPOINT COUNTER BOXES -->
+          <div class="grid grid-cols-2 gap-6 flex-1">
+            <div class="neo-card bg-neo-cyan p-5 flex flex-col justify-between">
+              <span class="font-mono text-xs font-black uppercase text-neo-black/70">Total Route</span>
+              <div id="stat-total" class="font-display font-black text-4xl sm:text-5xl">-</div>
+              <span class="text-[11px] font-bold font-mono">EndPoints</span>
+            </div>
+
+            <div class="neo-card bg-neo-green p-5 flex flex-col justify-between">
+              <span class="font-mono text-xs font-black uppercase text-neo-black/70">Kategori</span>
+              <div id="stat-categories" class="font-display font-black text-4xl sm:text-5xl">-</div>
+              <span class="text-[11px] font-bold font-mono">Folders</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- TERMINAL CONSOLE CARD -->
+      <div class="neo-card bg-neo-black text-white p-0 overflow-hidden">
+        <div class="px-5 py-3 bg-neo-black border-b-4 border-neo-black flex items-center justify-between bg-white/5">
+          <div class="flex items-center gap-2">
+            <span class="w-3.5 h-3.5 border-2 border-white bg-neo-pink inline-block"></span>
+            <span class="w-3.5 h-3.5 border-2 border-white bg-neo-yellow inline-block"></span>
+            <span class="w-3.5 h-3.5 border-2 border-white bg-neo-green inline-block"></span>
+            <span class="ml-2 font-mono text-xs font-bold text-neo-cyan">root@justputus:~# (DenzcOne-cli)</span>
+          </div>
+          <span class="font-mono text-[10px] bg-neo-yellow text-neo-black px-2 py-0.5 font-black uppercase">LIVE CLI</span>
+        </div>
+
+        <div id="terminal-body" class="p-6 font-mono text-xs leading-relaxed min-h-[200px] max-h-[280px] overflow-y-auto space-y-1 bg-black/90 text-white/80 select-text">
+          <div id="terminal-content"></div>
+          <div id="terminal-active-line" class="text-white">
+            <span id="terminal-typing"></span><span class="terminal-cursor"></span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- VIEW 2: DOCS & CATALOG PAGE -->
+    <div id="view-docs" class="hidden space-y-8">
+      
+      <!-- CONTROLS & SEARCH BAR HEADER -->
+      <div class="neo-card bg-neo-card p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 class="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight">Katalog Endpoint</h2>
+          <p class="font-mono text-xs font-bold text-neo-black/60">Pilih kategori atau gunakan pencarian untuk menemukan API</p>
+        </div>
+
+        <div class="relative w-full md:w-80">
+          <input type="text" id="search-input" placeholder="Cari endpoint / route..." class="w-full pl-10 pr-4 py-3 bg-neo-bg border-3 border-neo-black font-mono text-xs font-bold placeholder-neo-black/50 focus:bg-white transition-colors" />
+          <i data-lucide="search" class="w-4 h-4 text-neo-black absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+        </div>
+      </div>
+
+      <!-- CATEGORY TABS -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none" id="category-tabs"></div>
+
+      <!-- ENDPOINTS CONTAINER -->
+      <div id="endpoint-container" class="space-y-6">
+        <div class="neo-card bg-neo-card p-12 text-center font-mono text-xs font-bold">
+          Memuat seluruh katalog API...
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- TEST MODAL BACKDROP -->
+  <div id="modal-backdrop" class="fixed inset-0 bg-neo-black/70 z-50 opacity-0 pointer-events-none transition-opacity duration-200" onclick="closeModal()"></div>
+
+  <!-- TEST API MODAL SHEET -->
+  <div id="modal-sheet" class="modal-sheet fixed inset-x-0 bottom-0 z-50 max-w-3xl mx-auto max-h-[90vh] bg-neo-card border-t-4 sm:border-x-4 border-neo-black flex flex-col shadow-neo-xl">
+    
+    <!-- MODAL HEADER -->
+    <div class="flex items-center justify-between p-4 sm:p-5 border-b-4 border-neo-black bg-neo-yellow">
+      <div class="flex items-center gap-3">
+        <span id="modal-badge-method" class="px-2.5 py-1 text-xs font-mono font-black border-2 border-neo-black bg-neo-card shadow-neo-sm uppercase">GET</span>
+        <h3 id="modal-title" class="font-display font-black text-base sm:text-lg text-neo-black tracking-tight">Modal Title</h3>
+      </div>
+      <button onclick="closeModal()" class="neo-button bg-neo-pink p-1.5" title="Tutup">
+        <i data-lucide="x" class="w-5 h-5 text-neo-black"></i>
+      </button>
+    </div>
+
+    <!-- MODAL BODY -->
+    <div class="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
+      
+      <!-- DESKRIPSI -->
+      <div class="neo-card bg-neo-bg p-4 space-y-1">
+        <span class="block text-[10px] font-mono font-black uppercase tracking-wider text-neo-black/60">Deskripsi</span>
+        <p id="modal-desc" class="text-xs font-sans font-bold text-neo-black leading-relaxed">-</p>
+      </div>
+
+      <!-- PATH ROUTE -->
+      <div>
+        <span class="block text-[10px] font-mono font-black uppercase tracking-wider text-neo-black/60 mb-1">Path Endpoint</span>
+        <div class="flex items-center justify-between p-3 bg-neo-card border-3 border-neo-black font-mono text-xs font-bold text-neo-black">
+          <span id="modal-path" class="truncate pr-2">/</span>
+          <button onclick="copyRoute()" class="neo-button bg-neo-cyan px-2.5 py-1 text-[11px] flex items-center gap-1 font-bold shrink-0">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i> Salin
+          </button>
+        </div>
+      </div>
+
+      <!-- FORM PARAMETERS -->
+      <div class="space-y-3">
+        <span class="block text-[10px] font-mono font-black uppercase tracking-wider text-neo-black/60">Parameter Input</span>
+        <form id="modal-form" onsubmit="executeRequest(event)" class="space-y-4">
+          <div id="modal-inputs" class="space-y-3"></div>
+
+          <button type="submit" id="btn-submit" class="neo-button w-full py-3.5 bg-neo-green text-neo-black font-display font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2">
+            <span id="btn-submit-icon"><i data-lucide="send" class="w-4 h-4"></i></span>
+            <span id="btn-submit-text">JALANKAN TESTING</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- RESPONSE OUTPUT -->
+      <div id="modal-response-wrapper" class="space-y-2 hidden">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] font-mono font-black uppercase text-neo-black/60">Response Payload</span>
+            <span id="modal-status-pill" class="badge-tag text-[10px] font-mono font-black px-2 py-0.5 bg-neo-green">200 OK</span>
+            <span id="modal-time-pill" class="font-mono text-xs font-bold text-neo-black/70">0ms</span>
+          </div>
+          <button onclick="copyResponse()" class="neo-button bg-neo-yellow px-2 py-1 text-[10px] font-mono font-bold flex items-center gap-1">
+            <i data-lucide="copy" class="w-3 h-3"></i> Salin JSON
+          </button>
+        </div>
+
+        <div class="neo-card bg-neo-black p-4 overflow-x-auto max-h-64 select-text">
+          <pre id="modal-response-body" class="font-mono text-xs leading-relaxed text-white"></pre>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="border-t-4 border-neo-black py-6 bg-neo-card mt-auto">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-xs font-black">
+      <div class="flex items-center gap-2">
+        <span class="bg-neo-yellow px-2 py-0.5 border-2 border-neo-black">DenzcOne API</span>
+        <span>© 2026 JUSTPUTU'S. ALL RIGHTS RESERVED.</span>
+      </div>
+      <div class="text-neo-black/60">NEOBRUTALISM EDITION</div>
+    </div>
+  </footer>
+
+  <!-- SCRIPT LOGIC -->
+  <script>
+    let registry = {};
+    let activeEndpoint = null;
+    let currentCategory = 'all';
+    let isTerminalTyping = false;
+    let rawResponseText = '';
+    const openFolders = new Set();
+
+    function smoothNavigate(targetView) {
+      const homeView = document.getElementById('view-home');
+      const docsView = document.getElementById('view-docs');
+
+      if (targetView === 'docs') {
+        homeView.classList.add('hidden');
+        docsView.classList.remove('hidden');
+      } else {
+        docsView.classList.add('hidden');
+        homeView.classList.remove('hidden');
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    const notify = (icon, title) => {
+      Swal.fire({
+        icon,
+        title,
+        position: 'center',
+        showConfirmButton: false,
+        timer: 1600,
+        customClass: { popup: 'custom-swal-neo' },
+        iconColor: '#121212'
+      });
+    };
+
+    const formatCodeHighlight = (data) => {
+      let json = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+      json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, (match) => {
+        let cls = 'json-number';
+        if (/^"/.test(match)) {
+          cls = /:$/.test(match) ? 'json-key' : 'json-string';
+        } else if (/true|false/.test(match)) {
+          cls = 'json-boolean';
+        } else if (/null/.test(match)) {
+          cls = 'json-null';
+        }
+        return `<span class="${cls}">${match}</span>`;
+      });
+    };
+
+    const typeTerminalLine = (text, speed = 12) => {
+      return new Promise((resolve) => {
+        const typingEl = document.getElementById('terminal-typing');
+        const terminalBody = document.getElementById('terminal-body');
+        let index = 0;
+        typingEl.textContent = '';
+
+        const interval = setInterval(() => {
+          if (index < text.length) {
+            typingEl.textContent += text.charAt(index);
+            index++;
+            terminalBody.scrollTop = terminalBody.scrollHeight;
+          } else {
+            clearInterval(interval);
+            setTimeout(resolve, 30);
+          }
+        }, speed);
+      });
+    };
+
+    const commitTerminalLine = (colorClass = 'text-white/70') => {
+      const typingEl = document.getElementById('terminal-typing');
+      const contentEl = document.getElementById('terminal-content');
+      const terminalBody = document.getElementById('terminal-body');
+
+      const lineDiv = document.createElement('div');
+      lineDiv.className = colorClass;
+      lineDiv.textContent = typingEl.textContent;
+      contentEl.appendChild(lineDiv);
+      typingEl.textContent = '';
+      terminalBody.scrollTop = terminalBody.scrollHeight;
+    };
+
+    const runConsoleBootSequence = async () => {
+      if (isTerminalTyping) return;
+      isTerminalTyping = true;
+
+      const contentEl = document.getElementById('terminal-content');
+      contentEl.innerHTML = '';
+
+      await typeTerminalLine('[ OK ] DenzcOne Framework Engine v2.0 Started', 8);
+      commitTerminalLine('text-neo-green font-bold');
+
+      await typeTerminalLine('[ OK ] Router modules loaded by justputu\'s', 8);
+      commitTerminalLine('text-neo-green font-bold');
+
+      await typeTerminalLine('root@justputus:~# denzcone scan --all', 10);
+      commitTerminalLine('text-neo-yellow font-black');
+
+      const categories = Object.keys(registry);
+      let totalLoaded = 0;
+
+      for (const cat of categories) {
+        const list = registry[cat] || [];
+        for (const ep of list) {
+          totalLoaded++;
+          const method = (ep.method && ep.method[0]) || 'GET';
+          await typeTerminalLine(`[LOADED] ${method} ${ep.endpoint}`, 4);
+          commitTerminalLine('text-neo-cyan font-mono');
+        }
+      }
+
+      await typeTerminalLine(`[INFO] Successfully mapped ${totalLoaded} routes across ${categories.length} categories`, 8);
+      commitTerminalLine('text-white font-bold');
+
+      await typeTerminalLine('root@justputus:~# ready for requests', 8);
+      commitTerminalLine('text-white/40');
+
+      isTerminalTyping = false;
+    };
+
+    async function rescanConsole() {
+      await fetchEndpoints();
+      await runConsoleBootSequence();
+      notify('info', 'Registry disinkronisasi');
+    }
+
+    async function fetchEndpoints() {
+      try {
+        const res = await fetch(`/api/endpoints?_t=${Date.now()}`, {
+          cache: "no-store",
+          headers: { "Pragma": "no-cache", "Cache-Control": "no-cache" }
+        });
+        const data = await res.json();
+
+        if (data.status && data.result) {
+          registry = data.result.endpoints || {};
+          document.getElementById('stat-total').textContent = data.result.total || 0;
+          document.getElementById('stat-categories').textContent = Object.keys(registry).length;
+
+          buildCategoryTabs();
+          renderEndpoints();
+        }
+      } catch (err) {
+        document.getElementById('endpoint-container').innerHTML = `
+          <div class="neo-card bg-neo-pink p-8 text-center font-mono font-bold text-xs">
+            Gagal memuat daftar endpoint dari server.
+          </div>
+        `;
+      }
+    }
+
+    function buildCategoryTabs() {
+      const container = document.getElementById('category-tabs');
+      container.innerHTML = `
+        <button onclick="filterCategory('all')" class="neo-button px-4 py-2 font-display font-black text-xs uppercase tracking-wider ${currentCategory === 'all' ? 'bg-neo-yellow' : 'bg-neo-card'}">
+          Semua Folder
+        </button>
+      `;
+
+      Object.keys(registry).forEach(cat => {
+        const btn = document.createElement('button');
+        btn.onclick = () => filterCategory(cat);
+        btn.className = `neo-button px-4 py-2 font-display font-black text-xs uppercase tracking-wider ${currentCategory === cat ? 'bg-neo-yellow' : 'bg-neo-card'}`;
+        btn.textContent = cat;
+        container.appendChild(btn);
+      });
+    }
+
+    function filterCategory(cat) {
+      currentCategory = cat;
+      buildCategoryTabs();
+      renderEndpoints(document.getElementById('search-input').value.trim().toLowerCase());
+    }
+
+    function toggleFolder(cat) {
+      const content = document.getElementById(`folder-content-${cat}`);
+      const chevron = document.getElementById(`folder-chevron-${cat}`);
+
+      if (!content) return;
+
+      if (openFolders.has(cat)) {
+        openFolders.delete(cat);
+        content.classList.add('hidden');
+        chevron.style.transform = 'rotate(0deg)';
+      } else {
+        openFolders.add(cat);
+        content.classList.remove('hidden');
+        chevron.style.transform = 'rotate(180deg)';
+      }
+    }
+
+    function renderEndpoints(searchQuery = '') {
+      const container = document.getElementById('endpoint-container');
+      container.innerHTML = '';
+
+      const categories = Object.keys(registry);
+      let count = 0;
+
+      categories.forEach(cat => {
+        if (currentCategory !== 'all' && currentCategory !== cat) return;
+
+        const endpoints = registry[cat].filter(ep => {
+          if (!searchQuery) return true;
+          return ep.name.toLowerCase().includes(searchQuery) ||
+                 ep.endpoint.toLowerCase().includes(searchQuery) ||
+                 ep.description.toLowerCase().includes(searchQuery);
+        });
+
+        if (endpoints.length === 0) return;
+        count += endpoints.length;
+
+        if (currentCategory === 'all' && !searchQuery) {
+          const isOpen = openFolders.has(cat);
+          const folderBox = document.createElement('div');
+          folderBox.className = 'neo-card bg-neo-card overflow-hidden';
+
+          folderBox.innerHTML = `
+            <div onclick="toggleFolder('${cat}')" class="p-5 bg-neo-orange/20 border-b-4 border-neo-black flex items-center justify-between cursor-pointer select-none">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-neo-yellow border-2 border-neo-black shadow-neo-sm flex items-center justify-center font-black">
+                  <i data-lucide="folder" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <h3 class="font-display font-black text-base uppercase tracking-wider text-neo-black">${cat}</h3>
+                  <span class="font-mono text-xs font-bold text-neo-black/60">${endpoints.length} ENDPOINTS</span>
+                </div>
+              </div>
+              <div class="neo-button bg-neo-card p-1.5">
+                <i data-lucide="chevron-down" id="folder-chevron-${cat}" class="w-5 h-5 transition-transform" style="transform: ${isOpen ? 'rotate(180deg)' : 'rotate(0deg)'}"></i>
+              </div>
+            </div>
+            <div id="folder-content-${cat}" class="${isOpen ? '' : 'hidden'} p-5 grid grid-cols-1 md:grid-cols-2 gap-4 bg-neo-bg"></div>
+          `;
+
+          container.appendChild(folderBox);
+
+          const grid = document.getElementById(`folder-content-${cat}`);
+          endpoints.forEach((ep) => {
+            const cardEl = createEndpointCard(ep);
+            grid.appendChild(cardEl);
+          });
+        } else {
+          const block = document.createElement('div');
+          block.className = 'space-y-4';
+
+          block.innerHTML = `
+            <div class="flex items-center gap-2 pb-2 border-b-4 border-neo-black">
+              <span class="w-3 h-3 bg-neo-yellow border-2 border-neo-black"></span>
+              <h3 class="font-display font-black text-base uppercase tracking-wider text-neo-black">${cat}</h3>
+              <span class="font-mono text-xs font-bold text-neo-black/60">(${endpoints.length})</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="grid-${cat}"></div>
+          `;
+
+          container.appendChild(block);
+
+          const grid = document.getElementById(`grid-${cat}`);
+          endpoints.forEach((ep) => {
+            const cardEl = createEndpointCard(ep);
+            grid.appendChild(cardEl);
+          });
+        }
+      });
+
+      if (count === 0) {
+        container.innerHTML = `
+          <div class="neo-card bg-neo-pink p-12 text-center font-mono font-bold text-xs">
+            TIDAK ADA ENDPOINT YANG COCOK DENGAN PENCARIAN.
+          </div>
+        `;
+      }
+
+      lucide.createIcons();
+    }
+
+    function createEndpointCard(ep) {
+      const card = document.createElement('div');
+      card.className = 'neo-card bg-neo-card p-5 cursor-pointer flex flex-col justify-between hover:-translate-y-1 transition-transform';
+      card.onclick = () => openModal(ep);
+
+      const method = (ep.method && ep.method[0]) || 'GET';
+      const methodBadge = method === 'POST' ? 'bg-neo-cyan' : 'bg-neo-green';
+
+      card.innerHTML = `
+        <div class="space-y-2">
+          <div class="flex items-center justify-between gap-2">
+            <h4 class="font-display font-black text-sm text-neo-black truncate">${ep.name}</h4>
+            <span class="badge-tag px-2 py-0.5 font-mono text-[10px] font-black uppercase ${methodBadge}">${method}</span>
+          </div>
+          <p class="font-sans text-xs font-bold text-neo-black/70 leading-relaxed line-clamp-2">${ep.description || 'Tanpa deskripsi tambahan.'}</p>
+        </div>
+        <div class="flex items-center justify-between pt-4 mt-3 border-t-2 border-neo-black font-mono text-xs font-bold">
+          <span class="truncate max-w-[180px] text-neo-black/80">${ep.endpoint}</span>
+          <span class="bg-neo-yellow px-2 py-0.5 border border-neo-black flex items-center gap-1 font-black">
+            TEST <i data-lucide="arrow-right" class="w-3 h-3"></i>
+          </span>
+        </div>
+      `;
+      return card;
+    }
+
+    function openModal(ep) {
+      activeEndpoint = ep;
+      const modal = document.getElementById('modal-sheet');
+      const backdrop = document.getElementById('modal-backdrop');
+
+      document.getElementById('modal-title').textContent = ep.name;
+      document.getElementById('modal-desc').textContent = ep.description || '-';
+      document.getElementById('modal-path').textContent = ep.endpoint;
+
+      const method = (ep.method && ep.method[0]) || 'GET';
+      document.getElementById('modal-badge-method').textContent = method;
+
+      const inputsContainer = document.getElementById('modal-inputs');
+      inputsContainer.innerHTML = '';
+
+      const params = ep.params || {};
+      const keys = Object.keys(params);
+
+      if (keys.length === 0) {
+        inputsContainer.innerHTML = `
+          <div class="p-3 bg-neo-bg border-2 border-neo-black font-mono text-xs font-bold text-neo-black/60">
+            Endpoint ini tidak memerlukan parameter input.
+          </div>
+        `;
+      } else {
+        keys.forEach(key => {
+          const item = params[key];
+          const isRequired = typeof item === 'object' ? item.required : false;
+          const desc = typeof item === 'object' ? item.description : '';
+
+          const group = document.createElement('div');
+          group.className = 'space-y-1';
+          group.innerHTML = `
+            <div class="flex items-center justify-between text-xs font-mono font-bold">
+              <label class="text-neo-black">${key} ${isRequired ? '<span class="text-red-600">*</span>' : ''}</label>
+              <span class="text-neo-black/50 text-[10px]">${desc}</span>
+            </div>
+            <input type="text" name="${key}" ${isRequired ? 'required' : ''} placeholder="${key}..." class="w-full p-2.5 bg-neo-card border-2 border-neo-black font-mono text-xs font-bold focus:bg-neo-yellow/20" />
+          `;
+          inputsContainer.appendChild(group);
+        });
+      }
+
+      document.getElementById('modal-response-wrapper').classList.add('hidden');
+      document.body.style.overflow = 'hidden';
+
+      backdrop.classList.remove('opacity-0', 'pointer-events-none');
+      backdrop.classList.add('opacity-100');
+
+      modal.classList.add('active');
+      lucide.createIcons();
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('modal-sheet');
+      const backdrop = document.getElementById('modal-backdrop');
+
+      modal.classList.remove('active');
+      backdrop.classList.remove('opacity-100');
+      backdrop.classList.add('opacity-0', 'pointer-events-none');
+
+      document.body.style.overflow = '';
+      activeEndpoint = null;
+    }
+
+    async function executeRequest(e) {
+      e.preventDefault();
+      if (!activeEndpoint) return;
+
+      const submitBtn = document.getElementById('btn-submit');
+      const submitText = document.getElementById('btn-submit-text');
+      const submitIcon = document.getElementById('btn-submit-icon');
+      const responseWrapper = document.getElementById('modal-response-wrapper');
+      const responseBody = document.getElementById('modal-response-body');
+      const statusPill = document.getElementById('modal-status-pill');
+      const timePill = document.getElementById('modal-time-pill');
+
+      submitBtn.disabled = true;
+      submitText.textContent = 'MEMPROSES REQUEST...';
+      submitIcon.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>';
+      lucide.createIcons();
+
+      const formData = new FormData(e.target);
+      const queryParams = new URLSearchParams();
+      const bodyPayload = {};
+
+      for (const [key, val] of formData.entries()) {
+        if (val.trim()) {
+          queryParams.append(key, val.trim());
+          bodyPayload[key] = val.trim();
+        }
+      }
+
+      const method = (activeEndpoint.method && activeEndpoint.method[0]) || 'GET';
+      let url = activeEndpoint.endpoint;
+
+      const options = { method };
+
+      if (method === 'GET') {
+        const qs = queryParams.toString();
+        if (qs) url += `?${qs}`;
+      } else {
+        options.headers = { 'Content-Type': 'application/json' };
+        options.body = JSON.stringify(bodyPayload);
+      }
+
+      const start = performance.now();
+
+      try {
+        const response = await fetch(url, options);
+        const duration = Math.round(performance.now() - start);
+        const json = await response.json();
+
+        rawResponseText = JSON.stringify(json, null, 2);
+
+        statusPill.textContent = `${response.status} ${response.statusText || 'OK'}`;
+        statusPill.className = response.ok 
+          ? 'badge-tag text-[10px] font-mono font-black px-2 py-0.5 bg-neo-green'
+          : 'badge-tag text-[10px] font-mono font-black px-2 py-0.5 bg-neo-pink';
+
+        timePill.textContent = `${duration}ms`;
+        responseBody.innerHTML = formatCodeHighlight(json);
+        responseWrapper.classList.remove('hidden');
+
+        if (response.ok) {
+          notify('success', `Berhasil (${response.status})`);
+        } else {
+          notify('error', json.message || 'Request Gagal');
+        }
+      } catch (err) {
+        const duration = Math.round(performance.now() - start);
+        const errorObj = { status: false, message: err.message };
+        rawResponseText = JSON.stringify(errorObj, null, 2);
+
+        statusPill.textContent = 'ERROR';
+        statusPill.className = 'badge-tag text-[10px] font-mono font-black px-2 py-0.5 bg-neo-pink';
+        timePill.textContent = `${duration}ms`;
+        responseBody.innerHTML = formatCodeHighlight(errorObj);
+        responseWrapper.classList.remove('hidden');
+
+        notify('error', err.message || 'Gagal mengeksekusi request');
+      } finally {
+        submitBtn.disabled = false;
+        submitText.textContent = 'JALANKAN TESTING';
+        submitIcon.innerHTML = '<i data-lucide="send" class="w-4 h-4"></i>';
+        lucide.createIcons();
+      }
+    }
+
+    function copyRoute() {
+      if (!activeEndpoint) return;
+      navigator.clipboard.writeText(window.location.origin + activeEndpoint.endpoint);
+      notify('info', 'Route disalin');
+    }
+
+    function copyResponse() {
+      if (rawResponseText) {
+        navigator.clipboard.writeText(rawResponseText);
+        notify('info', 'JSON disalin');
+      }
+    }
+
+    async function checkLatency() {
+      const bottomDisplay = document.getElementById('bottom-latency');
+      const start = performance.now();
+      try {
+        await fetch('/tools/ping');
+        const duration = Math.round(performance.now() - start);
+        bottomDisplay.textContent = `${duration}ms`;
+      } catch {
+        bottomDisplay.textContent = 'Offline';
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", async () => {
+      lucide.createIcons();
+      await fetchEndpoints();
+      checkLatency();
+      await runConsoleBootSequence();
+
+      document.getElementById('search-input').addEventListener('input', (e) => {
+        renderEndpoints(e.target.value.trim().toLowerCase());
+      });
+    });
+  </script>
+</body>
+</html>
