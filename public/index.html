@@ -32,86 +32,113 @@
           },
           colors: {
             neo: {
-              bg: '#FAF8F5',
-              yellow: '#FFDE59',
-              cyan: '#00F0FF',
-              pink: '#FF5757',
-              lime: '#00E676',
-              purple: '#A855F7',
-              orange: '#FF914D',
-              black: '#000000',
-              card: '#FFFFFF',
+              bg: '#121212',       /* Dark Background yang nyaman di mata */
+              surface: '#1E1E24',  /* Latar card/elemen */
+              border: '#000000',   /* Border hitam tegas khas neobrutalism */
+              yellow: '#FFE600',   /* Soft Neon Accent */
+              cyan: '#38BDF8',
+              pink: '#F472B6',
+              lime: '#4ADE80',
+              purple: '#C084FC',
+              orange: '#FB923C',
+              card: '#18181B',
+              text: '#F4F4F5',     /* Teks cerah kontras tinggi */
+              muted: '#A1A1AA',    /* Teks sekunder */
             }
           },
           boxShadow: {
             'neo': '4px 4px 0px 0px #000000',
             'neo-lg': '6px 6px 0px 0px #000000',
-            'neo-xl': '8px 8px 0px 0px #000000',
-            'neo-sm': '2px 2px 0px 0px #000000',
-            'neo-reverse': '-4px -4px 0px 0px #000000',
+            'neo-xl': '10px 10px 0px 0px #000000',
+            'neo-sm': '3px 3px 0px 0px #000000',
+            'neo-glow': '4px 4px 15px rgba(255, 230, 0, 0.15)',
+          },
+          borderRadius: {
+            'neo': '20px',
+            'neo-lg': '28px',
+            'neo-asym': '24px 8px 24px 8px', /* Bentuk asimetris modern */
           }
         }
       }
     }
   </script>
-  <style>
+
+<style>
     * {
       -webkit-tap-highlight-color: transparent;
       outline: none;
     }
+    body {
+      background-color: #121212;
+      color: #F4F4F5;
+    }
+    
+    /* Scrollbar Dark & Modern */
     ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
+      width: 10px;
+      height: 10px;
     }
     ::-webkit-scrollbar-track {
-      background: #FAF8F5;
-      border-left: 3px solid #000;
+      background: #18181B;
+      border-left: 2px solid #000;
     }
     ::-webkit-scrollbar-thumb {
-      background: #FFDE59;
-      border: 3px solid #000;
+      background: #38BDF8;
+      border: 2px solid #000;
+      border-radius: 6px;
     }
     ::-webkit-scrollbar-thumb:hover {
-      background: #FF5757;
+      background: #F472B6;
     }
+
+    /* Dynamic Island Soft Glass-Brutalism */
     .dynamic-island {
-      background: #000000;
+      background: #18181B;
       border: 3px solid #000000;
-      box-shadow: 5px 5px 0px 0px #FFDE59;
+      box-shadow: 4px 4px 0px 0px #FFE600;
       border-radius: 9999px;
       transition: all 300ms cubic-bezier(0.16, 1, 0.3, 1);
     }
     .dynamic-island:hover {
       transform: translate(-2px, -2px);
-      box-shadow: 7px 7px 0px 0px #FFDE59;
+      box-shadow: 6px 6px 0px 0px #FFE600;
     }
     .dynamic-island:active {
       transform: translate(2px, 2px);
-      box-shadow: 2px 2px 0px 0px #FFDE59;
+      box-shadow: 2px 2px 0px 0px #FFE600;
     }
     .dynamic-island.expanded {
       border-radius: 1.5rem;
-      box-shadow: 8px 8px 0px 0px #00F0FF;
+      box-shadow: 6px 6px 0px 0px #38BDF8;
     }
+
+    /* Card & Container dengan sudut melengkung modern */
     .neo-box {
+      background-color: #18181B;
       border: 3px solid #000000;
+      border-radius: 20px;
       box-shadow: 5px 5px 0px 0px #000000;
-      transition: all 150ms ease;
+      transition: all 200ms ease;
     }
+
+    /* Tombol Interaktif */
     .neo-btn {
       border: 3px solid #000000;
+      border-radius: 14px;
       box-shadow: 4px 4px 0px 0px #000000;
-      transition: all 100ms ease;
+      transition: all 120ms ease;
       font-weight: 800;
     }
     .neo-btn:hover {
-      transform: translate(-2px, -2px);
-      box-shadow: 6px 6px 0px 0px #000000;
+      transform: translate(-3px, -3px);
+      box-shadow: 7px 7px 0px 0px #000000;
     }
     .neo-btn:active {
       transform: translate(2px, 2px);
       box-shadow: 1px 1px 0px 0px #000000;
     }
+
+    /* Folder Dropdown Smooth Grid */
     .folder-content {
       display: grid;
       grid-template-rows: 0fr;
@@ -120,47 +147,46 @@
     .folder-content.open {
       grid-template-rows: 1fr;
     }
+
+    /* Item Card dengan Aksen Hover Soft Neon */
     .card-item {
+      background-color: #1E1E24;
       border: 3px solid #000000;
+      border-radius: 16px;
       box-shadow: 4px 4px 0px 0px #000000;
-      transition: all 150ms ease;
+      transition: all 200ms ease;
       animation: cardAppear 250ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
     }
     .card-item:hover {
       transform: translate(-3px, -3px);
-      box-shadow: 7px 7px 0px 0px #000000;
-      background-color: #00F0FF !important;
+      box-shadow: 7px 7px 0px 0px #38BDF8;
+      border-color: #000000;
+      background-color: #27272A !important;
     }
+
     @keyframes cardAppear {
       from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(12px) scale(0.98);
       }
       to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0) scale(1);
       }
     }
+
+    /* Modal / Bottom Sheet */
     .modal-sheet {
       transform: translateY(100%);
       transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+      border-radius: 28px 28px 0 0;
+      border-top: 4px solid #000;
     }
     .modal-sheet.active {
       transform: translateY(0);
     }
-    .view-transition {
-      transition: opacity 200ms ease, transform 200ms ease;
-    }
-    .view-enter {
-      opacity: 1;
-      transform: translateY(0);
-      pointer-events: auto;
-    }
-    .view-leave {
-      opacity: 0;
-      transform: translateY(10px);
-      pointer-events: none;
-    }
+
+    /* Touch Effect */
     .touch-ripple {
       position: fixed;
       border-radius: 9999px;
@@ -168,42 +194,49 @@
       z-index: 9999;
       transform: scale(0.2);
       opacity: 0.85;
-      background: #FFDE59;
+      background: #FFE600;
       border: 2px solid #000;
       transition: transform 400ms ease, opacity 400ms ease;
     }
+
+    /* Terminal Cursor */
     .terminal-cursor {
       display: inline-block;
       width: 8px;
-      height: 16px;
-      background-color: #00E676;
-      vertical-align: sub;
+      height: 18px;
+      background-color: #4ADE80;
+      vertical-align: middle;
+      border-radius: 2px;
       animation: blinkCursor 600ms infinite steps(1);
     }
     @keyframes blinkCursor {
       0%, 100% { opacity: 1; }
       50% { opacity: 0; }
     }
+
+    /* SweetAlert Custom Dark Neobrutalism */
     .swal2-popup.custom-swal-center {
-      background: #FFDE59 !important;
+      background: #18181B !important;
       border: 4px solid #000000 !important;
-      border-radius: 0px !important;
+      border-radius: 20px !important;
       padding: 1.5rem !important;
-      box-shadow: 8px 8px 0px 0px #000000 !important;
+      box-shadow: 8px 8px 0px 0px #FFE600 !important;
     }
     .swal2-title {
-      font-size: 1.1rem !important;
+      font-size: 1.2rem !important;
       font-weight: 900 !important;
       font-family: "Space Grotesk", sans-serif !important;
-      color: #000000 !important;
+      color: #F4F4F5 !important;
       text-transform: uppercase;
     }
-    .json-key { color: #A855F7; font-weight: 700; }
-    .json-string { color: #00E676; }
-    .json-number { color: #FF914D; font-weight: 700; }
-    .json-boolean { color: #FF5757; font-weight: 900; }
-    .json-null { color: #888888; font-style: italic; }
-  </style>
+
+    /* Highlight JSON Syntax */
+    .json-key { color: #C084FC; font-weight: 700; }
+    .json-string { color: #4ADE80; }
+    .json-number { color: #FB923C; font-weight: 700; }
+    .json-boolean { color: #F472B6; font-weight: 900; }
+    .json-null { color: #A1A1AA; font-style: italic; }
+</style>  
 </head>
 <body class="bg-neo-bg text-black min-h-screen flex flex-col font-sans antialiased selection:bg-neo-pink selection:text-white relative">
 
