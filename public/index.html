@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DenzcOne — Rest API</title>
+  
+  <meta name="description" content="Simple lightweight API base made by justputu's" />
+  <meta property="og:title" content="DenzcOne — Rest API" />
+  <meta property="og:description" content="Simple lightweight API base made by justputu's" />
+  <meta property="og:image" content="/media/DenzcOne.jpg" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="/media/DenzcOne.jpg" />
+  
+  <link rel="icon" type="image/jpeg" href="/media/DenzcOne.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Space+Grotesk:wght@700;800;900&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet" />
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            heading: ['"Space Grotesk"', 'sans-serif'],
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            neo: {
+              bg: '#F3F4F8',
+              card: '#FFFFFF',
+              dark: '#0F172A',
+              purple: '#6366F1',
+              violet: '#6C5CE7',
+              yellow: '#FACC15',
+              mint: '#10B981',
+              rose: '#FF7675',
+              blue: '#3B82F6',
+              border: '#0F172A'
+            }
+          },
+          boxShadow: {
+            'brutal-sm': '3px 3px 0px #0F172A',
+            'brutal': '4px 4px 0px #0F172A',
+            'brutal-lg': '6px 6px 0px #0F172A',
+            'brutal-xl': '8px 8px 0px #0F172A',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * {
+      -webkit-tap-highlight-color: transparent;
+      outline: none;
+    }
+
+    /* Dot Pattern Background ala UI Rujukan */
+    body {
+      background-color: #F3F4F8;
+      background-image: radial-gradient(#CBD5E1 1.5px, transparent 1.5px);
+      background-size: 16px 16px;
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #F3F4F8;
+      border-left: 2px solid #0F172A;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #6C5CE7;
+      border: 2px solid #0F172A;
+    }
+
+    /* Neobrutalism Interactive Buttons */
+    .neo-btn {
+      transition: all 0.15s ease;
+      border: 2.5px solid #0F172A;
+      box-shadow: 4px 4px 0px #0F172A;
+      border-radius: 10px;
+    }
+    .neo-btn:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0px #0F172A;
+    }
+    .neo-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0px #0F172A;
+    }
+
+    /* Neobrutalism Cards */
+    .neo-card {
+      border: 2.5px solid #0F172A;
+      box-shadow: 5px 5px 0px #0F172A;
+      border-radius: 16px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .neo-card-hover:hover {
+      transform: translate(-3px, -3px);
+      box-shadow: 8px 8px 0px #0F172A;
+    }
+
+    /* Input & Form Styling */
+    .neo-input {
+      border: 2.5px solid #0F172A;
+      border-radius: 10px;
+      box-shadow: 2px 2px 0px #0F172A;
+    }
+    .neo-input:focus {
+      box-shadow: 4px 4px 0px #0F172A;
+    }
+
+    /* Pill Badges */
+    .neo-pill {
+      border: 2.5px solid #0F172A;
+      border-radius: 9999px;
+      box-shadow: 3px 3px 0px #0F172A;
+    }
+
+    .folder-content {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 300ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .folder-content.open {
+      grid-template-rows: 1fr;
+    }
+
+    .modal-sheet {
+      transform: translateY(100%);
+      transition: transform 350ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .modal-sheet.active {
+      transform: translateY(0);
+    }
+
+    .view-transition {
+      transition: opacity 250ms cubic-bezier(0.16, 1, 0.3, 1), transform 250ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .view-enter {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+    .view-leave {
+      opacity: 0;
+      transform: translateY(10px) scale(0.98);
+      pointer-events: none;
+    }
+
+    .swal2-popup.custom-swal-center {
+      background: #FFFFFF !important;
+      border: 3px solid #0F172A !important;
+      border-radius: 16px !important;
+      padding: 1.25rem !important;
+      box-shadow: 6px 6px 0px #0F172A !important;
+    }
+    .swal2-title {
+      font-size: 1rem !important;
+      font-weight: 800 !important;
+      font-family: "Space Grotesk", sans-serif !important;
+      color: #0F172A !important;
+    }
+
+    .json-key { color: #3B82F6; font-weight: 700; }
+    .json-string { color: #10B981; }
+    .json-number { color: #F59E0B; font-weight: 700; }
+    .json-boolean { color: #EF4444; font-weight: 800; }
+    .json-null { color: #94A3B8; font-style: italic; }
+
+    .terminal-cursor {
+      display: inline-block;
+      width: 8px;
+      height: 15px;
+      background-color: #6C5CE7;
+      vertical-align: sub;
+      animation: blinkCursor 700ms infinite steps(1);
+    }
+    @keyframes blinkCursor {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+  </style>
+</head>
+<body class="text-neo-dark min-h-screen flex flex-col font-sans antialiased selection:bg-neo-violet selection:text-white relative pb-20 sm:pb-0">
+
+  <!-- TOP HEADER BADGE AREA -->
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b-4 border-neo-dark px-4 sm:px-8 py-3">
+    <div class="max-w-4xl mx-auto flex items-center justify-between gap-4">
+      
+      <!-- LOGO & TITLE -->
+      <a href="#" onclick="smoothNavigate('home')" class="flex items-center gap-3 group">
+        <img src="/media/DenzcOne.jpg" alt="Logo" class="w-10 h-10 border-2.5 border-neo-dark rounded-xl shadow-brutal-sm group-hover:rotate-6 transition-transform object-cover bg-neo-yellow" />
+        <div class="flex flex-col">
+          <span class="font-heading font-black text-xl tracking-wider uppercase leading-none text-neo-dark">DenzcOne</span>
+          <span class="font-mono text-[10px] text-neo-dark/70 font-bold">BY JUSTPUTU'S</span>
+        </div>
+      </a>
+
+      <!-- NAV BUTTONS -->
+      <div class="hidden sm:flex items-center gap-3">
+        <button onclick="smoothNavigate('home')" class="neo-btn bg-white hover:bg-neo-violet hover:text-white px-4 py-2 font-mono text-xs font-bold flex items-center gap-2">
+          <i data-lucide="home" class="w-4 h-4"></i>
+          <span>HOME</span>
+        </button>
+        <button onclick="smoothNavigate('docs')" class="neo-btn bg-neo-violet text-white px-4 py-2 font-mono text-xs font-bold flex items-center gap-2">
+          <i data-lucide="terminal" class="w-4 h-4"></i>
+          <span>DOCS</span>
+        </button>
+        <a href="https://wa.me/628895307489" target="_blank" class="neo-btn bg-neo-yellow text-neo-dark px-4 py-2 font-mono text-xs font-bold flex items-center gap-2">
+          <i data-lucide="message-square" class="w-4 h-4"></i>
+          <span>CONTACT</span>
+        </a>
+      </div>
+
+      <div class="sm:hidden">
+        <a href="https://github.com/justputu/DenzcOne" target="_blank" class="neo-btn bg-neo-dark text-white px-3 py-1.5 font-mono text-xs font-bold flex items-center justify-center">
+          <i data-lucide="github" class="w-4 h-4"></i>
+        </a>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-1 max-w-3xl mx-auto w-full px-4 py-6 sm:py-10 relative space-y-6">
+    
+    <!-- HOME VIEW -->
+    <div id="view-home" class="view-transition view-enter space-y-6">
+      
+      <!-- TOP FLOATING BADGE (Mirip Rujukan WA REACTION / BUG BOUNTY) -->
+      <div class="flex justify-center">
+        <div class="neo-pill bg-white px-5 py-2 flex items-center gap-2 font-mono text-xs font-black uppercase text-neo-dark">
+          <i data-lucide="shield-check" class="w-4 h-4 text-neo-violet"></i>
+          <span>DENZCONE REST API V2.0</span>
+        </div>
+      </div>
+
+      <!-- MAIN TITLE HERO -->
+      <div class="text-center space-y-3 py-2">
+        <h1 class="font-heading font-black text-4xl sm:text-6xl tracking-tight leading-tight uppercase text-neo-dark">
+          REST API<br/>CONSOLE
+        </h1>
+        <p class="text-neo-dark/80 text-xs sm:text-sm font-semibold max-w-md mx-auto leading-relaxed">
+          Simple lightweight API base made by <span class="bg-neo-yellow px-1.5 py-0.5 rounded border border-neo-dark font-bold">justputu's</span>. Cepat, stabil, dan siap digunakan untuk kebutuhan bot & web.
+        </p>
+      </div>
+
+      <!-- BANNER CARDS (Mirip Rujukan Cara Kerjanya) -->
+      <div class="neo-card bg-neo-yellow p-4 sm:p-5 flex items-center justify-between gap-4 cursor-pointer hover:brightness-95 transition-all" onclick="smoothNavigate('docs')">
+        <div class="flex items-center gap-3.5">
+          <div class="w-12 h-12 bg-white border-2.5 border-neo-dark rounded-xl flex items-center justify-center text-neo-dark shadow-brutal-sm shrink-0">
+            <i data-lucide="sparkles" class="w-6 h-6 text-neo-dark"></i>
+          </div>
+          <div>
+            <h3 class="font-heading font-extrabold text-sm sm:text-base uppercase text-neo-dark">Eksplorasi Endpoint API</h3>
+            <p class="text-xs font-semibold text-neo-dark/80">Klik untuk melihat katalog API & tes parameter secara langsung</p>
+          </div>
+        </div>
+        <div class="w-8 h-8 bg-white border-2 border-neo-dark rounded-lg flex items-center justify-center shrink-0 shadow-brutal-sm">
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </div>
+      </div>
+
+      <!-- STATS GRID SECTION (Dengan Shape Pink / Yellow khas Rujukan) -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        
+        <!-- LATENCY CARD -->
+        <div class="neo-card bg-white p-5 flex flex-col justify-between relative overflow-hidden space-y-3">
+          <div class="absolute -right-4 -bottom-4 w-16 h-16 bg-neo-rose/30 rounded-full border-2 border-neo-dark"></div>
+          <div class="flex items-center justify-between relative z-10">
+            <span class="font-mono text-[11px] font-extrabold text-neo-dark/70 uppercase">Latency</span>
+            <div class="w-8 h-8 bg-neo-dark text-white rounded-lg flex items-center justify-center shadow-brutal-sm">
+              <i data-lucide="zap" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div id="bottom-latency" class="font-mono text-2xl font-black text-neo-dark relative z-10">...ms</div>
+        </div>
+
+        <!-- TOTAL ENDPOINTS CARD -->
+        <div class="neo-card bg-white p-5 flex flex-col justify-between relative overflow-hidden space-y-3">
+          <div class="absolute -right-4 -bottom-4 w-16 h-16 bg-neo-yellow/40 rounded-full border-2 border-neo-dark"></div>
+          <div class="flex items-center justify-between relative z-10">
+            <span class="font-mono text-[11px] font-extrabold text-neo-dark/70 uppercase">Endpoints</span>
+            <div class="w-8 h-8 bg-neo-dark text-white rounded-lg flex items-center justify-center shadow-brutal-sm">
+              <i data-lucide="layers" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div id="stat-total" class="font-mono text-2xl font-black text-neo-dark relative z-10">-</div>
+        </div>
+
+        <!-- CATEGORIES CARD -->
+        <div class="neo-card bg-white p-5 flex flex-col justify-between relative overflow-hidden space-y-3">
+          <div class="absolute -right-4 -bottom-4 w-16 h-16 bg-neo-violet/20 rounded-full border-2 border-neo-dark"></div>
+          <div class="flex items-center justify-between relative z-10">
+            <span class="font-mono text-[11px] font-extrabold text-neo-dark/70 uppercase">Categories</span>
+            <div class="w-8 h-8 bg-neo-dark text-white rounded-lg flex items-center justify-center shadow-brutal-sm">
+              <i data-lucide="folder-git-2" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div id="stat-categories" class="font-mono text-2xl font-black text-neo-dark relative z-10">-</div>
+        </div>
+
+      </div>
+
+      <!-- TERMINAL CONSOLE SECTION (Mirip Rujukan Code Terminal) -->
+      <div class="neo-card bg-white p-5 space-y-4">
+        <div class="flex items-center justify-between border-b-2 border-neo-dark/10 pb-3">
+          <div class="flex items-center gap-2 font-mono text-xs font-black uppercase text-neo-dark">
+            <div class="w-6 h-6 bg-neo-violet text-white rounded-md flex items-center justify-center font-bold">1</div>
+            <span>System Console Log</span>
+          </div>
+          <button onclick="rescanConsole()" class="neo-btn bg-white px-3 py-1 text-[11px] font-mono font-bold flex items-center gap-1.5">
+            <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
+            <span>Re-Scan</span>
+          </button>
+        </div>
+
+        <div class="neo-card bg-neo-dark text-white overflow-hidden !border-2">
+          <div class="px-4 py-2 bg-[#1B1D22] border-b-2 border-neo-dark flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-neo-rose border border-black inline-block"></span>
+              <span class="w-3 h-3 rounded-full bg-neo-yellow border border-black inline-block"></span>
+              <span class="w-3 h-3 rounded-full bg-neo-mint border border-black inline-block"></span>
+              <span class="ml-2 text-[11px] font-mono font-bold text-white/50">justputu@DenzcOne:~#</span>
+            </div>
+            <span class="text-[10px] font-mono bg-neo-violet px-2 py-0.5 font-bold uppercase rounded">Node.js ESM</span>
+          </div>
+
+          <div id="terminal-body" class="p-4 font-mono text-xs leading-relaxed text-white/80 min-h-[160px] max-h-[220px] overflow-y-auto space-y-1 select-text">
+            <div id="terminal-content"></div>
+            <div id="terminal-active-line" class="text-white">
+              <span id="terminal-typing"></span><span class="terminal-cursor"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- DOCS VIEW -->
+    <div id="view-docs" class="view-transition view-leave hidden space-y-6">
+      
+      <!-- SEARCH & FILTER HEADER -->
+      <div class="neo-card bg-white p-5 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="font-heading font-black text-2xl uppercase tracking-tight text-neo-dark">Endpoint Directory</h2>
+            <p class="text-xs font-semibold text-neo-dark/70">Cari, telusuri folder kategori, dan jalankan pengujian parameter.</p>
+          </div>
+
+          <!-- SEARCH INPUT -->
+          <div class="relative w-full sm:w-72">
+            <i data-lucide="search" class="w-4 h-4 text-neo-dark absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+            <input type="text" id="search-input" placeholder="Cari endpoint..." class="w-full neo-input pl-10 pr-4 py-2 text-xs font-mono font-bold bg-neo-bg focus:bg-white transition-colors placeholder-neo-dark/50" />
+          </div>
+        </div>
+
+        <!-- CATEGORY TABS -->
+        <div class="flex items-center gap-2 overflow-x-auto pt-2 pb-1" id="category-tabs"></div>
+      </div>
+
+      <!-- ENDPOINTS LISTING -->
+      <div id="endpoint-container" class="space-y-4">
+        <div class="text-center py-16 neo-card bg-white text-xs font-mono font-bold">
+          Memuat katalog endpoint...
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- BOTTOM MOBILE NAV BAR (Khas Rujukan Aplikasi Mobile Web) -->
+  <div class="fixed bottom-3 inset-x-4 z-40 sm:hidden">
+    <div class="neo-card bg-white p-1.5 flex items-center justify-around gap-1">
+      <button onclick="smoothNavigate('home')" class="flex-1 py-2 rounded-xl font-mono text-[11px] font-black flex flex-col items-center gap-1 transition-colors hover:bg-neo-bg">
+        <i data-lucide="home" class="w-4 h-4"></i>
+        <span>HOME</span>
+      </button>
+      <button onclick="smoothNavigate('docs')" class="flex-1 py-2 bg-neo-violet text-white border-2 border-neo-dark rounded-xl font-mono text-[11px] font-black flex flex-col items-center gap-1 shadow-brutal-sm">
+        <i data-lucide="terminal" class="w-4 h-4"></i>
+        <span>DOCS</span>
+      </button>
+      <a href="https://wa.me/628895307489" target="_blank" class="flex-1 py-2 rounded-xl font-mono text-[11px] font-black flex flex-col items-center gap-1 transition-colors hover:bg-neo-bg">
+        <i data-lucide="message-square" class="w-4 h-4"></i>
+        <span>CONTACT</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- MODAL BACKDROP -->
+  <div id="modal-backdrop" class="fixed inset-0 bg-neo-dark/60 backdrop-blur-sm z-50 opacity-0 pointer-events-none transition-opacity duration-300" onclick="closeModal()"></div>
+
+  <!-- MODAL SHEET SHEET/POPUP -->
+  <div id="modal-sheet" class="modal-sheet fixed inset-x-0 bottom-0 sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2 z-50 max-w-xl mx-auto w-full max-h-[90vh] sm:max-h-[85vh] bg-white border-t-4 sm:border-4 border-neo-dark rounded-t-2xl sm:rounded-2xl shadow-brutal-xl flex flex-col overflow-hidden">
+    
+    <div class="flex items-center justify-between px-5 py-3.5 bg-neo-violet text-white border-b-4 border-neo-dark">
+      <div class="flex items-center gap-2.5">
+        <span id="modal-badge-method" class="px-2.5 py-0.5 text-[10px] font-mono font-black uppercase bg-neo-dark text-white border border-white rounded-md">GET</span>
+        <h3 id="modal-title" class="font-heading font-black text-sm sm:text-base uppercase tracking-tight text-white">Endpoint Title</h3>
+      </div>
+      <button onclick="closeModal()" class="w-7 h-7 bg-neo-dark text-white border border-white rounded-lg flex items-center justify-center hover:bg-neo-rose transition-colors">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-5 space-y-5">
+      
+      <div>
+        <label class="block text-[11px] font-black font-mono uppercase text-neo-dark/60 mb-1">Deskripsi</label>
+        <p id="modal-desc" class="text-xs text-neo-dark font-semibold leading-relaxed">-</p>
+      </div>
+
+      <div>
+        <label class="block text-[11px] font-black font-mono uppercase text-neo-dark/60 mb-1">Path Route</label>
+        <div class="flex items-center justify-between p-2.5 bg-neo-bg border-2 border-neo-dark rounded-xl font-mono text-xs font-bold text-neo-violet">
+          <span id="modal-path" class="truncate max-w-[240px]">/</span>
+          <button onclick="copyRoute()" class="neo-btn bg-white px-2 py-1 text-[10px] font-mono font-bold flex items-center gap-1" title="Salin Route">
+            <i data-lucide="copy" class="w-3 h-3"></i>
+            <span>COPY</span>
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-[11px] font-black font-mono uppercase text-neo-dark/60 mb-2">Input Parameter</label>
+        <form id="modal-form" onsubmit="executeRequest(event)" class="space-y-4">
+          <div id="modal-inputs" class="space-y-3"></div>
+
+          <button type="submit" id="btn-submit" class="w-full neo-btn bg-neo-violet text-white py-3 px-4 font-heading font-black text-xs tracking-wider uppercase flex items-center justify-center gap-2">
+            <span id="btn-submit-icon"><i data-lucide="send" class="w-4 h-4"></i></span>
+            <span id="btn-submit-text">Jalankan Request</span>
+          </button>
+        </form>
+      </div>
+
+      <div id="modal-response-wrapper" class="space-y-2 hidden">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <label class="text-[11px] font-black font-mono uppercase text-neo-dark/60">Response Payload</label>
+            <span id="modal-status-pill" class="text-[10px] font-mono font-bold px-2 py-0.5 bg-neo-mint border-2 border-neo-dark rounded-md text-neo-dark">200 OK</span>
+            <span id="modal-time-pill" class="text-[10px] font-mono font-bold text-neo-dark">0ms</span>
+          </div>
+          <button onclick="copyResponse()" class="neo-btn bg-white px-2 py-1 text-[10px] font-mono font-bold flex items-center gap-1">
+            <i data-lucide="copy" class="w-3 h-3"></i>
+            <span>Copy JSON</span>
+          </button>
+        </div>
+
+        <div class="bg-neo-dark border-2 border-neo-dark rounded-xl p-4 overflow-x-auto max-h-60 select-text">
+          <pre id="modal-response-body" class="font-mono text-xs leading-relaxed text-white"></pre>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="border-t-4 border-neo-dark py-6 px-4 bg-white mt-auto">
+    <div class="max-w-3xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 font-mono text-[11px] font-bold text-neo-dark text-center sm:text-left">
+      <div>© 2026 JUSTPUTU'S — DENZCONE REST API.</div>
+      <div class="flex items-center gap-2">
+        <span class="bg-neo-yellow/50 px-2 py-0.5 border-1.5 border-neo-dark rounded-md">V2.0 STABLE</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- JAVASCRIPT LOGIC (SEMUA SYSTEM & CORE FUNCTION TETAP SAMA) -->
+  <script>
+    let registry = {};
+    let activeEndpoint = null;
+    let currentCategory = 'all';
+    let isTerminalTyping = false;
+    let rawResponseText = '';
+    const openFolders = new Set();
+
+    function smoothNavigate(targetView) {
+      const homeView = document.getElementById('view-home');
+      const docsView = document.getElementById('view-docs');
+
+      const current = targetView === 'docs' ? homeView : docsView;
+      const destination = targetView === 'docs' ? docsView : homeView;
+
+      current.classList.remove('view-enter');
+      current.classList.add('view-leave');
+
+      setTimeout(() => {
+        current.classList.add('hidden');
+        destination.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        setTimeout(() => {
+          destination.classList.remove('view-leave');
+          destination.classList.add('view-enter');
+        }, 50);
+      }, 200);
+    }
+
+    const notify = (icon, title) => {
+      Swal.fire({
+        icon,
+        title,
+        position: 'center',
+        showConfirmButton: false,
+        timer: 1600,
+        customClass: { popup: 'custom-swal-center' },
+        iconColor: icon === 'success' ? '#10B981' : '#FF7675'
+      });
+    };
+
+    const formatCodeHighlight = (data) => {
+      let json = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+      json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, (match) => {
+        let cls = 'json-number';
+        if (/^"/.test(match)) {
+          cls = /:$/.test(match) ? 'json-key' : 'json-string';
+        } else if (/true|false/.test(match)) {
+          cls = 'json-boolean';
+        } else if (/null/.test(match)) {
+          cls = 'json-null';
+        }
+        return `<span class="${cls}">${match}</span>`;
+      });
+    };
+
+    const typeTerminalLine = (text, speed = 14) => {
+      return new Promise((resolve) => {
+        const typingEl = document.getElementById('terminal-typing');
+        const terminalBody = document.getElementById('terminal-body');
+        let index = 0;
+        typingEl.textContent = '';
+
+        const interval = setInterval(() => {
+          if (index < text.length) {
+            typingEl.textContent += text.charAt(index);
+            index++;
+            terminalBody.scrollTop = terminalBody.scrollHeight;
+          } else {
+            clearInterval(interval);
+            setTimeout(resolve, 30);
+          }
+        }, speed);
+      });
+    };
+
+    const commitTerminalLine = (colorClass = 'text-white/60') => {
+      const typingEl = document.getElementById('terminal-typing');
+      const contentEl = document.getElementById('terminal-content');
+      const terminalBody = document.getElementById('terminal-body');
+
+      const lineDiv = document.createElement('div');
+      lineDiv.className = colorClass;
+      lineDiv.textContent = typingEl.textContent;
+      contentEl.appendChild(lineDiv);
+      typingEl.textContent = '';
+      terminalBody.scrollTop = terminalBody.scrollHeight;
+    };
+
+    const runConsoleBootSequence = async () => {
+      if (isTerminalTyping) return;
+      isTerminalTyping = true;
+
+      const contentEl = document.getElementById('terminal-content');
+      contentEl.innerHTML = '';
+
+      await typeTerminalLine('[ OK ] DenzcOne Engine Initialized', 8);
+      commitTerminalLine('text-neo-mint font-mono font-bold');
+
+      await typeTerminalLine('[ OK ] Synchronized Router Engine with Plugin Watcher', 8);
+      commitTerminalLine('text-neo-mint font-mono font-bold');
+
+      await typeTerminalLine('justputu@DenzcOne:~# denzcone-cli scan --active', 10);
+      commitTerminalLine('text-white font-bold');
+
+      const categories = Object.keys(registry);
+      let totalLoaded = 0;
+
+      for (const cat of categories) {
+        const list = registry[cat] || [];
+        for (const ep of list) {
+          totalLoaded++;
+          const method = (ep.method && ep.method[0]) || 'GET';
+          await typeTerminalLine(`[LOADED] ${method} ${ep.endpoint}`, 4);
+          commitTerminalLine('text-neo-violet font-mono');
+        }
+      }
+
+      await typeTerminalLine(`[INFO] ${totalLoaded} endpoints active across ${categories.length} categories`, 8);
+      commitTerminalLine('text-white font-bold');
+
+      await typeTerminalLine('justputu@DenzcOne:~# ready', 8);
+      commitTerminalLine('text-white/40');
+
+      isTerminalTyping = false;
+    };
+
+    async function rescanConsole() {
+      await fetchEndpoints();
+      await runConsoleBootSequence();
+      notify('success', 'Gokil Coy Awokawokawok');
+    }
+
+    async function fetchEndpoints() {
+      try {
+        const res = await fetch(`/api/endpoints?_t=${Date.now()}`, {
+          cache: "no-store",
+          headers: { "Pragma": "no-cache", "Cache-Control": "no-cache" }
+        });
+        const data = await res.json();
+
+        if (data.status && data.result) {
+          registry = data.result.endpoints || {};
+          document.getElementById('stat-total').textContent = data.result.total || 0;
+          document.getElementById('stat-categories').textContent = Object.keys(registry).length;
+
+          buildCategoryTabs();
+          renderEndpoints();
+        }
+      } catch (err) {
+        document.getElementById('endpoint-container').innerHTML = `
+          <div class="text-center py-12 neo-card bg-neo-rose text-white text-xs font-mono font-bold">
+            Gagal memuat daftar endpoint dari server.
+          </div>
+        `;
+      }
+    }
+
+    function buildCategoryTabs() {
+      const container = document.getElementById('category-tabs');
+      container.innerHTML = `
+        <button onclick="filterCategory('all')" class="neo-btn px-3.5 py-1.5 text-xs font-mono font-bold shrink-0 ${currentCategory === 'all' ? 'bg-neo-violet text-white' : 'bg-white text-neo-dark'}">
+          SEMUA
+        </button>
+      `;
+
+      Object.keys(registry).forEach(cat => {
+        const btn = document.createElement('button');
+        btn.onclick = () => filterCategory(cat);
+        btn.className = `neo-btn px-3.5 py-1.5 text-xs font-mono font-bold uppercase shrink-0 ${currentCategory === cat ? 'bg-neo-violet text-white' : 'bg-white text-neo-dark'}`;
+        btn.textContent = cat;
+        container.appendChild(btn);
+      });
+    }
+
+    function filterCategory(cat) {
+      currentCategory = cat;
+      buildCategoryTabs();
+      renderEndpoints(document.getElementById('search-input').value.trim().toLowerCase());
+    }
+
+    function toggleFolder(cat) {
+      const content = document.getElementById(`folder-content-${cat}`);
+      const chevron = document.getElementById(`folder-chevron-${cat}`);
+      const icon = document.getElementById(`folder-icon-${cat}`);
+
+      if (!content) return;
+
+      const isNowOpen = !openFolders.has(cat);
+
+      if (isNowOpen) {
+        openFolders.add(cat);
+        content.classList.add('open');
+        chevron.style.transform = 'rotate(180deg)';
+        icon.setAttribute('data-lucide', 'folder-open');
+      } else {
+        openFolders.delete(cat);
+        content.classList.remove('open');
+        chevron.style.transform = 'rotate(0deg)';
+        icon.setAttribute('data-lucide', 'folder');
+      }
+      lucide.createIcons();
+    }
+
+    function renderEndpoints(searchQuery = '') {
+      const container = document.getElementById('endpoint-container');
+      container.innerHTML = '';
+
+      const categories = Object.keys(registry);
+      let count = 0;
+
+      categories.forEach(cat => {
+        if (currentCategory !== 'all' && currentCategory !== cat) return;
+
+        const endpoints = registry[cat].filter(ep => {
+          if (!searchQuery) return true;
+          return ep.name.toLowerCase().includes(searchQuery) ||
+                 ep.endpoint.toLowerCase().includes(searchQuery) ||
+                 ep.description.toLowerCase().includes(searchQuery);
+        });
+
+        if (endpoints.length === 0) return;
+        count += endpoints.length;
+
+        if (currentCategory === 'all' && !searchQuery) {
+          const isOpen = openFolders.has(cat);
+          const folderBox = document.createElement('div');
+          folderBox.className = 'neo-card bg-white overflow-hidden';
+
+          folderBox.innerHTML = `
+            <div onclick="toggleFolder('${cat}')" class="p-4 flex items-center justify-between cursor-pointer bg-neo-bg/40 hover:bg-neo-bg transition-colors select-none border-b-2 border-neo-dark">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 bg-neo-violet text-white border-2 border-neo-dark rounded-xl flex items-center justify-center shrink-0 shadow-brutal-sm">
+                  <i data-lucide="${isOpen ? 'folder-open' : 'folder'}" id="folder-icon-${cat}" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <h3 class="text-xs font-heading font-black uppercase tracking-wider text-neo-dark">${cat}</h3>
+                  <span class="text-[10px] font-mono font-bold text-neo-dark/60">${endpoints.length} ENDPOINTS</span>
+                </div>
+              </div>
+              <div class="w-7 h-7 bg-white border-2 border-neo-dark rounded-lg flex items-center justify-center text-neo-dark shadow-brutal-sm">
+                <i data-lucide="chevron-down" id="folder-chevron-${cat}" class="w-3.5 h-3.5 transition-transform duration-300" style="transform: ${isOpen ? 'rotate(180deg)' : 'rotate(0deg)'}"></i>
+              </div>
+            </div>
+            <div id="folder-content-${cat}" class="folder-content ${isOpen ? 'open' : ''}">
+              <div class="overflow-hidden">
+                <div class="p-4 grid grid-cols-1 gap-3" id="folder-grid-${cat}"></div>
+              </div>
+            </div>
+          `;
+
+          container.appendChild(folderBox);
+
+          const grid = document.getElementById(`folder-grid-${cat}`);
+          endpoints.forEach((ep) => {
+            grid.appendChild(createEndpointCard(ep));
+          });
+        } else {
+          const block = document.createElement('div');
+          block.className = 'space-y-3';
+
+          block.innerHTML = `
+            <div class="flex items-center gap-2 pb-1 border-b-2 border-neo-dark">
+              <span class="w-3 h-3 bg-neo-violet border border-neo-dark rounded-sm"></span>
+              <h3 class="text-xs font-heading font-black uppercase tracking-wider text-neo-dark">${cat}</h3>
+              <span class="text-[10px] font-mono font-bold text-neo-dark/60">(${endpoints.length})</span>
+            </div>
+            <div class="grid grid-cols-1 gap-3" id="grid-${cat}"></div>
+          `;
+
+          container.appendChild(block);
+
+          const grid = document.getElementById(`grid-${cat}`);
+          endpoints.forEach((ep) => {
+            grid.appendChild(createEndpointCard(ep));
+          });
+        }
+      });
+
+      if (count === 0) {
+        container.innerHTML = `
+          <div class="text-center py-16 neo-card bg-white text-xs font-mono font-bold">
+            Tidak ada endpoint yang cocok dengan pencarian.
+          </div>
+        `;
+      }
+
+      lucide.createIcons();
+    }
+
+    function createEndpointCard(ep) {
+      const card = document.createElement('div');
+      card.className = 'neo-card neo-card-hover bg-white p-4 cursor-pointer flex flex-col justify-between space-y-3';
+      card.onclick = () => openModal(ep);
+
+      const method = (ep.method && ep.method[0]) || 'GET';
+      const methodBadge = method === 'POST' ? 'bg-neo-blue text-white' : 'bg-neo-mint text-neo-dark';
+
+      card.innerHTML = `
+        <div>
+          <div class="flex items-center justify-between gap-2 mb-1.5">
+            <h4 class="text-xs font-heading font-black uppercase text-neo-dark">${ep.name}</h4>
+            <span class="px-2 py-0.5 text-[9px] font-mono font-black border-1.5 border-neo-dark rounded-md ${methodBadge}">${method}</span>
+          </div>
+          <p class="text-[11px] text-neo-dark/80 font-semibold leading-relaxed">${ep.description || 'Tanpa deskripsi tambahan.'}</p>
+        </div>
+        <div class="flex items-center justify-between pt-2.5 border-t-1.5 border-neo-dark/10 text-[11px] font-mono font-bold">
+          <span class="truncate max-w-[180px] sm:max-w-[260px] text-neo-violet">${ep.endpoint}</span>
+          <div class="flex items-center gap-1 text-neo-dark font-black">
+            <span>TEST</span>
+            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+          </div>
+        </div>
+      `;
+      return card;
+    }
+
+    function openModal(ep) {
+      activeEndpoint = ep;
+      const modal = document.getElementById('modal-sheet');
+      const backdrop = document.getElementById('modal-backdrop');
+
+      document.getElementById('modal-title').textContent = ep.name;
+      document.getElementById('modal-desc').textContent = ep.description || '-';
+      document.getElementById('modal-path').textContent = ep.endpoint;
+
+      const method = (ep.method && ep.method[0]) || 'GET';
+      document.getElementById('modal-badge-method').textContent = method;
+
+      const inputsContainer = document.getElementById('modal-inputs');
+      inputsContainer.innerHTML = '';
+
+      const params = ep.params || {};
+      const keys = Object.keys(params);
+
+      if (keys.length === 0) {
+        inputsContainer.innerHTML = `
+          <div class="text-xs font-mono font-bold text-neo-dark/70 p-3 bg-neo-bg border-2 border-neo-dark rounded-xl">
+            Endpoint ini tidak memerlukan parameter input.
+          </div>
+        `;
+      } else {
+        keys.forEach(key => {
+          const item = params[key];
+          const isRequired = typeof item === 'object' ? item.required : false;
+          const desc = typeof item === 'object' ? item.description : '';
+
+          const group = document.createElement('div');
+          group.className = 'space-y-1';
+          group.innerHTML = `
+            <div class="flex items-center justify-between text-xs font-mono font-bold">
+              <label class="text-neo-dark uppercase">${key} ${isRequired ? '<span class="text-neo-rose">*</span>' : ''}</label>
+              <span class="text-[10px] text-neo-dark/60">${desc}</span>
+            </div>
+            <input type="text" name="${key}" ${isRequired ? 'required' : ''} placeholder="Masukkan ${key}..." class="w-full neo-input px-3 py-2 text-xs font-mono font-bold bg-neo-bg focus:bg-white transition-colors" />
+          `;
+          inputsContainer.appendChild(group);
+        });
+      }
+
+      document.getElementById('modal-response-wrapper').classList.add('hidden');
+      document.body.style.overflow = 'hidden';
+
+      backdrop.classList.remove('opacity-0', 'pointer-events-none');
+      backdrop.classList.add('opacity-100');
+
+      modal.classList.add('active');
+      lucide.createIcons();
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('modal-sheet');
+      const backdrop = document.getElementById('modal-backdrop');
+
+      modal.classList.remove('active');
+      backdrop.classList.remove('opacity-100');
+      backdrop.classList.add('opacity-0', 'pointer-events-none');
+
+      document.body.style.overflow = '';
+      activeEndpoint = null;
+    }
+
+    async function executeRequest(e) {
+      e.preventDefault();
+      if (!activeEndpoint) return;
+
+      const submitBtn = document.getElementById('btn-submit');
+      const submitText = document.getElementById('btn-submit-text');
+      const submitIcon = document.getElementById('btn-submit-icon');
+      const responseWrapper = document.getElementById('modal-response-wrapper');
+      const responseBody = document.getElementById('modal-response-body');
+      const statusPill = document.getElementById('modal-status-pill');
+      const timePill = document.getElementById('modal-time-pill');
+
+      submitBtn.disabled = true;
+      submitBtn.classList.add('opacity-70');
+      submitText.textContent = 'Memproses...';
+      submitIcon.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>';
+      lucide.createIcons();
+
+      const formData = new FormData(e.target);
+      const queryParams = new URLSearchParams();
+      const bodyPayload = {};
+
+      for (const [key, val] of formData.entries()) {
+        if (val.trim()) {
+          queryParams.append(key, val.trim());
+          bodyPayload[key] = val.trim();
+        }
+      }
+
+      const method = (activeEndpoint.method && activeEndpoint.method[0]) || 'GET';
+      let url = activeEndpoint.endpoint;
+
+      const options = { method };
+
+      if (method === 'GET') {
+        const qs = queryParams.toString();
+        if (qs) url += `?${qs}`;
+      } else {
+        options.headers = { 'Content-Type': 'application/json' };
+        options.body = JSON.stringify(bodyPayload);
+      }
+
+      const start = performance.now();
+
+      try {
+        const response = await fetch(url, options);
+        const duration = Math.round(performance.now() - start);
+        const json = await response.json();
+
+        rawResponseText = JSON.stringify(json, null, 2);
+
+        statusPill.textContent = `${response.status} ${response.statusText || 'OK'}`;
+        statusPill.className = response.ok 
+          ? 'text-[10px] font-mono font-bold px-2 py-0.5 bg-neo-mint border-2 border-neo-dark rounded-md text-neo-dark'
+          : 'text-[10px] font-mono font-bold px-2 py-0.5 bg-neo-rose border-2 border-neo-dark rounded-md text-white';
+
+        timePill.textContent = `${duration}ms`;
+        responseBody.innerHTML = formatCodeHighlight(json);
+        responseWrapper.classList.remove('hidden');
+
+        if (response.ok) {
+          notify('success', `Berhasil (${response.status})`);
+        } else {
+          notify('error', json.message || 'Request Gagal');
+        }
+      } catch (err) {
+        const duration = Math.round(performance.now() - start);
+        const errorObj = { status: false, message: err.message };
+        rawResponseText = JSON.stringify(errorObj, null, 2);
+
+        statusPill.textContent = 'Error';
+        statusPill.className = 'text-[10px] font-mono font-bold px-2 py-0.5 bg-neo-rose border-2 border-neo-dark rounded-md text-white';
+        timePill.textContent = `${duration}ms`;
+        responseBody.innerHTML = formatCodeHighlight(errorObj);
+        responseWrapper.classList.remove('hidden');
+
+        notify('error', err.message || 'Gagal mengeksekusi request');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-70');
+        submitText.textContent = 'Jalankan Request';
+        submitIcon.innerHTML = '<i data-lucide="send" class="w-4 h-4"></i>';
+        lucide.createIcons();
+      }
+    }
+
+    function copyRoute() {
+      if (!activeEndpoint) return;
+      navigator.clipboard.writeText(window.location.origin + activeEndpoint.endpoint);
+      notify('success', 'Route disalin');
+    }
+
+    function copyResponse() {
+      if (rawResponseText) {
+        navigator.clipboard.writeText(rawResponseText);
+        notify('success', 'JSON disalin');
+      }
+    }
+
+    async function checkLatency() {
+      const bottomDisplay = document.getElementById('bottom-latency');
+      const start = performance.now();
+      try {
+        await fetch('/tools/ping');
+        const duration = Math.round(performance.now() - start);
+        bottomDisplay.textContent = `${duration}ms`;
+      } catch {
+        bottomDisplay.textContent = 'Offline';
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", async () => {
+      lucide.createIcons();
+      await fetchEndpoints();
+      checkLatency();
+      await runConsoleBootSequence();
+
+      document.getElementById('search-input').addEventListener('input', (e) => {
+        renderEndpoints(e.target.value.trim().toLowerCase());
+      });
+    });
+  </script>
+</body>
+</html>
