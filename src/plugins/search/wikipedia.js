@@ -1,9 +1,13 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
-import { CookieJar } from "tough-cookie";
-import { wrapper } from "axios-cookiejar-support";
 
 const BASE_URL = "https://id.wikipedia.org";
+
+const HEADERS = {
+  "User-Agent": "WikiScraper/1.0 (contact@example.com)",
+  "Accept-Language": "id-ID",
+  "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+};
 
 const IGNORE_SECTIONS = [
   "Daftar isi",
@@ -15,24 +19,13 @@ const IGNORE_SECTIONS = [
   "Bacaan lanjut"
 ];
 
-const createClient = () => {
-  const jar = new CookieJar();
-  return wrapper(
-    axios.create({
-      jar,
-      baseURL: BASE_URL,
-      headers: {
-        "User-Agent": "WikiScraper/1.0 (https://github.com/user; contact@example.com)",
-        "Accept-Language": "id-ID",
-        "Sec-Fetch-Mode": "cors"
-      }
-    })
-  );
-};
-
-const req = async (client, url, params = {}) => {
+const req = async (url, params = {}) => {
   try {
-    const { data } = await client.get(url, { params });
+    const { data } = await axios.get(url, {
+      params,
+      headers: HEADERS,
+      timeout: 15000
+    });
     return data;
   } catch (e) {
     return null;
@@ -195,9 +188,9 @@ const parseSections = ($) => {
   return sections;
 };
 
-const getRelated = async (client, title, limit = 5) => {
+const getRelated = async (title, limit = 5) => {
   try {
-    const data = await req(client, "/w/api.php", {
+    const data = await req(`${BASE_URL}/w/api.php`, {
       action: "query",
       format: "json",
       generator: "search",
@@ -219,7 +212,7 @@ const getRelated = async (client, title, limit = 5) => {
   }
 };
 
-const getPage = async (client, title) => {
+const getPage = async (title) => {
   const result = {
     title,
     url: `https://id.wikipedia.org/wiki/${encodeURIComponent(title)}`,
@@ -232,8 +225,8 @@ const getPage = async (client, title) => {
   };
 
   try {
-    const html = await req(client, `/wiki/${encodeURIComponent(title)}`);
-    if (!html) return result;
+    const html = await req(`${BASE_URL}/wiki/${encodeURIComponent(title)}`);
+    if (!html || typeof html !== "string") return result;
 
     const $ = cheerio.load(html);
     const components = parseComponents($);
@@ -248,7 +241,7 @@ const getPage = async (client, title) => {
 
     return {
       ...result,
-      title: $("h1#firstHeading").text().trim(),
+      title: $("h1#firstHeading").text().trim() || title,
       intro,
       infobox: components.infobox,
       taxonomy: components.taxonomy,
@@ -261,18 +254,53 @@ const getPage = async (client, title) => {
   }
 };
 
+const searchWiki = async (query, limit) => {
+  const results = [];
+
+  const data = await req(`${BASE_URL}/w/api.php`, {
+    action: "query",
+    format: "json",
+    generator: "prefixsearch",
+    gpssearch: query,
+    gpslimit: limit,
+    prop: "pageimages|description|info",
+    piprop: "thumbnail",
+    pithumbsize: 200,
+    inprop: "url"
+  });
+
+  const pages = Object.values(data?.query?.pages || {});
+
+  for (const item of pages) {
+    results.push({
+      page_id: item.pageid,
+      title: item.title,
+      description: item.description || null,
+      thumbnail: item.thumbnail?.source || null,
+      url: item.fullurl
+    });
+  }
+
+  return results;
+};
+
 export default {
   name: "Wikipedia Indonesia",
   category: "search",
   description:
-    "Scraping artikel Wikipedia Indonesia - pencarian, detail halaman, infobox, gambar, dan artikel terkait",
+    "Cari artikel Wikipedia Indonesia atau ambil detail halaman (intro, infobox, taxonomy, section, gambar, related)",
   method: ["GET", "POST"],
   cache: 600,
   params: {
     query: {
       type: "string",
-      required: true,
-      description: "Kata kunci pencarian"
+      required: false,
+      description: "Kata kunci pencarian (wajib jika tanpa 'title')"
+    },
+    title: {
+      type: "string",
+      required: false,
+      description: "Judul artikel untuk mode detail langsung"
     },
     limit: {
       type: "number",
@@ -282,82 +310,60 @@ export default {
     detail: {
       type: "boolean",
       required: false,
-      description: "Ambil detail lengkap artikel (default: false)"
+      description: "Ambil detail lengkap untuk setiap hasil search"
     },
     related: {
       type: "boolean",
       required: false,
-      description: "Ambil artikel terkait (default: false)"
+      description: "Ambil artikel terkait"
     }
   },
   execute: async (req) => {
     const query = req.query.query || req.body?.query;
+    const title = req.query.title || req.body?.title;
     const limit = parseInt(req.query.limit || req.body?.limit || 5);
-    const detail =
-      (req.query.detail || req.body?.detail) === "true" ||
-      req.query.detail === true ||
-      req.body?.detail === true;
-    const related =
-      (req.query.related || req.body?.related) === "true" ||
-      req.query.related === true ||
-      req.body?.related === true;
+    const detail = String(req.query.detail || req.body?.detail) === "true";
+    const related = String(req.query.related || req.body?.related) === "true";
 
-    if (!query) {
-      throw new Error("Parameter 'query' wajib diisi");
+    if (!query && !title) {
+      throw new Error("Parameter 'query' atau 'title' wajib diisi");
     }
 
-    const client = createClient();
     const startTime = Date.now();
-    const results = [];
 
-    const apiData = await req(client, "/w/api.php", {
-      action: "query",
-      format: "json",
-      generator: "prefixsearch",
-      gpssearch: query,
-      gpslimit: limit,
-      prop: "pageimages|description|info",
-      piprop: "thumbnail",
-      pithumbsize: 200,
-      inprop: "url"
-    });
+    if (title && !query) {
+      const page = await getPage(title);
 
-    const pages = Object.values(apiData?.query?.pages || {});
+      if (related) {
+        page.related_articles = await getRelated(title, 5);
+      }
 
-    for (const item of pages) {
-      let entry = {
-        page_id: item.pageid,
-        title: item.title,
-        description: item.description || null,
-        thumbnail: item.thumbnail?.source || null,
-        url: item.fullurl
+      return {
+        mode: "page",
+        ...page,
+        process_time: `${((Date.now() - startTime) / 1000).toFixed(2)}s`
       };
+    }
 
+    const results = await searchWiki(query, limit);
+
+    for (const item of results) {
       if (detail) {
-        try {
-          const fullData = await getPage(client, item.title);
-          entry = { ...entry, ...fullData };
-        } catch (e) {}
+        const fullData = await getPage(item.title);
+        Object.assign(item, fullData);
       }
 
       if (related) {
-        try {
-          entry.related_articles = await getRelated(client, item.title, 3);
-        } catch (e) {
-          entry.related_articles = [];
-        }
+        item.related_articles = await getRelated(item.title, 3);
       }
-
-      results.push(entry);
     }
 
-    const elapsed = `${((Date.now() - startTime) / 1000).toFixed(2)}s`;
-
     return {
+      mode: "search",
       query,
       total: results.length,
       results,
-      process_time: elapsed
+      process_time: `${((Date.now() - startTime) / 1000).toFixed(2)}s`
     };
   }
 };
