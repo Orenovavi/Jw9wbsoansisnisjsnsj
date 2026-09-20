@@ -1,4 +1,5 @@
 import axios from "axios";
+import { createCanvas, loadImage } from "@napi-rs/canvas";
 
 const FONT_FAMILY = '"Segoe UI", "Helvetica Neue", Arial, sans-serif';
 const DEFAULT_TEMPLATE = "https://cdn.zass.in/Ve8lvjKtSl.jpg";
@@ -27,12 +28,6 @@ const toBuffer = async (src) => {
 };
 
 const generateCallScreen = async (config) => {
-  const sharpImport = await import("sharp");
-  const sharp = sharpImport.default || sharpImport;
-
-  const canvasImport = await import("canvas");
-  const { createCanvas, loadImage } = canvasImport.default || canvasImport;
-
   const {
     templateUrl = DEFAULT_TEMPLATE,
     profileUrl,
@@ -59,10 +54,6 @@ const generateCallScreen = async (config) => {
 
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext("2d");
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = "high";
-  ctx.patternQuality = "best";
-  ctx.quality = "best";
 
   ctx.drawImage(templateImg, 0, 0, width, height);
 
@@ -75,8 +66,6 @@ const generateCallScreen = async (config) => {
 
   const profileCanvas = createCanvas(avatarSize, avatarSize);
   const profileCtx = profileCanvas.getContext("2d");
-  profileCtx.imageSmoothingEnabled = true;
-  profileCtx.imageSmoothingQuality = "high";
 
   const srcW = profileImgRaw.width;
   const srcH = profileImgRaw.height;
@@ -131,10 +120,7 @@ const generateCallScreen = async (config) => {
       shadowBlur = Math.round(8 * scale),
       shadowOffsetX = 0,
       shadowOffsetY = Math.round(2 * scale),
-      maxWidth = null,
-      stroke = false,
-      strokeColor = "rgba(0, 0, 0, 0.4)",
-      strokeWidth = Math.max(1, Math.round(2 * scale))
+      maxWidth = null
     } = options;
 
     ctx.save();
@@ -146,15 +132,6 @@ const generateCallScreen = async (config) => {
     ctx.shadowBlur = shadowBlur;
     ctx.shadowOffsetX = shadowOffsetX;
     ctx.shadowOffsetY = shadowOffsetY;
-
-    if (stroke) {
-      ctx.lineWidth = strokeWidth;
-      ctx.strokeStyle = strokeColor;
-      ctx.lineJoin = "round";
-      ctx.miterLimit = 2;
-      if (maxWidth) ctx.strokeText(text, x, y, maxWidth);
-      else ctx.strokeText(text, x, y);
-    }
 
     if (maxWidth) ctx.fillText(text, x, y, maxWidth);
     else ctx.fillText(text, x, y);
@@ -196,31 +173,16 @@ const generateCallScreen = async (config) => {
     });
   }
 
-  const canvasBuffer = canvas.toBuffer("image/png", {
-    compressionLevel: 0,
-    filters: canvas.PNG_ALL_FILTERS
-  });
-
-  let pipeline = sharp(canvasBuffer, { failOn: "none" }).withMetadata(false);
-  pipeline = pipeline.sharpen({ sigma: 0.6, m1: 0.5, m2: 0.5 });
-
+  // Encoding langsung pakai @napi-rs/canvas (tanpa sharp)
   if (outputFormat === "png") {
-    pipeline = pipeline.png({
-      compressionLevel: 9,
-      adaptiveFiltering: true,
-      palette: false
-    });
-  } else if (outputFormat === "webp") {
-    pipeline = pipeline.webp({ quality, effort: 6 });
-  } else {
-    pipeline = pipeline.jpeg({
-      quality,
-      mozjpeg: true,
-      chromaSubsampling: "4:4:4"
-    });
+    return canvas.toBuffer("image/png");
   }
 
-  return await pipeline.toBuffer();
+  if (outputFormat === "webp") {
+    return canvas.toBuffer("image/webp", quality);
+  }
+
+  return canvas.toBuffer("image/jpeg", quality);
 };
 
 const uploadToTelegraph = async (buffer) => {
