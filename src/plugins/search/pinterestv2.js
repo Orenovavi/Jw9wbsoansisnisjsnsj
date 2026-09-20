@@ -1,12 +1,4 @@
-import nexo from "nexo-aio-downloader";
-
-const isValidPinterestUrl = (url) => {
-  if (!url) return false;
-  return (
-    /pinterest\.[a-z.]+\/pin\//.test(url) ||
-    /pin\.it\//.test(url)
-  );
-};
+import * as Pinterest from "@myno_21/pinterest-scraper";
 
 const extractPinId = (url) => {
   if (!url) return null;
@@ -18,62 +10,78 @@ const extractPinId = (url) => {
   return null;
 };
 
+const isValidPinterestUrl = (url) => {
+  if (!url) return false;
+  return /pinterest\.[a-z.]+\/pin\//.test(url) || /pin\.it\//.test(url);
+};
+
 export default {
-  name: "Pinterest Downloader",
-  category: "downloader",
-  description: "Download media Pinterest beserta caption/deskripsi pin",
+  name: "Pinterest Search",
+  category: "search",
+  description: "Cari pin di Pinterest berdasarkan kata kunci, lengkap dengan caption/deskripsi",
   method: ["GET", "POST"],
-  cache: 60,
+  cache: 300,
   params: {
-    url: {
+    query: {
       type: "string",
       required: true,
-      description: "URL Pinterest (pin.it atau pinterest.com/pin/...)"
+      description: "Kata kunci pencarian"
+    },
+    limit: {
+      type: "number",
+      required: false,
+      description: "Jumlah hasil maksimal (default: 10)"
     }
   },
   execute: async (req) => {
-    const url = req.query.url || req.body?.url;
+    const query = req.query.query || req.body?.query;
+    const limit = Math.min(parseInt(req.query.limit || req.body?.limit || 10), 20);
 
-    if (!url) {
-      throw new Error("Parameter 'url' wajib diisi");
-    }
-
-    if (!isValidPinterestUrl(url)) {
-      throw new Error("URL tidak valid, harus dari pinterest.com atau pin.it");
-    }
-
-    const pinId = extractPinId(url);
-    if (!pinId) {
-      throw new Error("Pin ID tidak ditemukan dalam URL");
+    if (!query) {
+      throw new Error("Parameter 'query' wajib diisi");
     }
 
     const startTime = Date.now();
+    const results = [];
 
-    try {
-      const data = await nexo.pinterest.download(url);
+    // Search Pinterest
+    const searchData = await Pinterest.searchPins(query, limit);
 
-      if (!data || !data.status) {
-        throw new Error(data?.message || "Media tidak ditemukan atau pin sudah dihapus");
-      }
-
-      const elapsed = `${((Date.now() - startTime) / 1000).toFixed(2)}s`;
-
-      return {
-        pin_id: pinId,
-        title: data.data?.title || null,
-        description: data.data?.description || data.data?.caption || null,
-        tags: data.data?.tags || [],
-        username: data.data?.username || null,
-        media_url: data.data?.url || data.data?.media || null,
-        thumbnail: data.data?.thumbnail || data.data?.image || null,
-        original_url: url,
-        process_time: elapsed
-      };
-    } catch (error) {
-      if (error.message.includes("Unsupported site")) {
-        throw new Error("URL Pinterest tidak dikenali");
-      }
-      throw new Error(`Gagal mengambil data Pinterest: ${error.message}`);
+    if (!searchData || searchData.length === 0) {
+      throw new Error("Tidak ada hasil ditemukan untuk kata kunci tersebut");
     }
+
+    // Ambil caption untuk setiap pin (opsional, tapi butuh request tambahan)
+    for (const pin of searchData) {
+      const pinId = extractPinId(pin.link);
+      let description = pin.description || null;
+
+      // Kalau caption belum ada, coba ambil detail pin
+      if (!description && pinId) {
+        try {
+          const detail = await Pinterest.getPins(pinId);
+          description = detail.description || null;
+        } catch {
+          // skip kalau gagal
+        }
+      }
+
+      results.push({
+        pin_id: pinId,
+        title: pin.title || null,
+        description,
+        image: pin.image || null,
+        link: pin.link || null
+      });
+    }
+
+    const elapsed = `${((Date.now() - startTime) / 1000).toFixed(2)}s`;
+
+    return {
+      query,
+      total: results.length,
+      results,
+      process_time: elapsed
+    };
   }
 };
