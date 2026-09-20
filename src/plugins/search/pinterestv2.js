@@ -1,19 +1,4 @@
-import * as Pinterest from "@myno_21/pinterest-scraper";
-
-const extractPinId = (url) => {
-  if (!url) return null;
-
-  // Format: pinterest.com/pin/123456789/
-  const match = url.match(/\/pin\/(\d+)/);
-  if (match) return match[1];
-
-  // Format: pin.it/AbC123
-  if (url.includes("pin.it/")) {
-    return url.split("pin.it/")[1]?.split(/[/?#]/)[0] || null;
-  }
-
-  return null;
-};
+import nexo from "nexo-aio-downloader";
 
 const isValidPinterestUrl = (url) => {
   if (!url) return false;
@@ -21,6 +6,16 @@ const isValidPinterestUrl = (url) => {
     /pinterest\.[a-z.]+\/pin\//.test(url) ||
     /pin\.it\//.test(url)
   );
+};
+
+const extractPinId = (url) => {
+  if (!url) return null;
+  const match = url.match(/\/pin\/(\d+)/);
+  if (match) return match[1];
+  if (url.includes("pin.it/")) {
+    return url.split("pin.it/")[1]?.split(/[/?#]/)[0] || null;
+  }
+  return null;
 };
 
 export default {
@@ -55,30 +50,28 @@ export default {
     const startTime = Date.now();
 
     try {
-      const data = await Pinterest.getPins(pinId);
+      const data = await nexo.pinterest.download(url);
 
-      if (!data || !data.post) {
-        throw new Error("Media tidak ditemukan atau pin sudah dihapus");
+      if (!data || !data.status) {
+        throw new Error(data?.message || "Media tidak ditemukan atau pin sudah dihapus");
       }
 
       const elapsed = `${((Date.now() - startTime) / 1000).toFixed(2)}s`;
 
       return {
         pin_id: pinId,
-        title: data.title || null,
-        description: data.description || null,
-        tags: data.tags || [],
-        username: data.username || null,
-        followers: data.followers || null,
-        media_url: data.post,
-        thumbnail: data.image || null,
-        comments: data.comments || 0,
+        title: data.data?.title || null,
+        description: data.data?.description || data.data?.caption || null,
+        tags: data.data?.tags || [],
+        username: data.data?.username || null,
+        media_url: data.data?.url || data.data?.media || null,
+        thumbnail: data.data?.thumbnail || data.data?.image || null,
         original_url: url,
         process_time: elapsed
       };
     } catch (error) {
-      if (error.message.includes("not found") || error.message.includes("404")) {
-        throw new Error("Pin tidak ditemukan atau sudah dihapus");
+      if (error.message.includes("Unsupported site")) {
+        throw new Error("URL Pinterest tidak dikenali");
       }
       throw new Error(`Gagal mengambil data Pinterest: ${error.message}`);
     }
