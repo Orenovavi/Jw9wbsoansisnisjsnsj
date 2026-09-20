@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DenzcOne — Rest API</title>
+
+  <meta name="description" content="Simple lightweight API base made by justputu's" />
+  <meta property="og:title" content="DenzcOne — Rest API" />
+  <meta property="og:description" content="Simple lightweight API base made by justputu's" />
+  <meta property="og:image" content="/media/DenzcOne.jpg" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="/media/DenzcOne.jpg" />
+
+  <link rel="icon" type="image/jpeg" href="/media/DenzcOne.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['"Outfit"', 'sans-serif'],
+            body: ['"Inter"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            void: {
+              950: '#02020A',
+              900: '#050512',
+              850: '#08081A',
+              800: '#0C0C22',
+              700: '#12122E',
+            },
+            holo: {
+              violet: '#8B5CF6',
+              purple: '#A855F7',
+              pink: '#EC4899',
+              cyan: '#06B6D4',
+              sky: '#38BDF8',
+              lime: '#84CC16',
+              amber: '#F59E0B',
+              rose: '#F43F5E',
+            }
+          },
+          animation: {
+            'mesh-slow': 'meshMove 22s ease-in-out infinite',
+            'mesh-mid': 'meshMove 16s ease-in-out infinite reverse',
+            'float': 'float 6s ease-in-out infinite',
+            'pulse-slow': 'pulseSlow 4s ease-in-out infinite',
+            'gradient-x': 'gradientX 6s ease infinite',
+            'shimmer': 'shimmer 3s linear infinite',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    * { -webkit-tap-highlight-color: transparent; }
+    html { scroll-behavior: smooth; }
+
+    :root {
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --glass-hi: rgba(139, 92, 246, 0.4);
+      --text: #F1F5F9;
+      --muted: #8B96AC;
+    }
+
+    /* ═══════════ ANIMATED MESH BACKGROUND ═══════════ */
+    body {
+      background-color: #02020A;
+      color: var(--text);
+      position: relative;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    .mesh-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .mesh-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.55;
+      will-change: transform;
+    }
+
+    .mesh-blob.b1 {
+      width: 620px; height: 620px;
+      background: radial-gradient(circle, #8B5CF6 0%, transparent 70%);
+      top: -180px; left: -140px;
+      animation: meshMove 24s ease-in-out infinite;
+    }
+
+    .mesh-blob.b2 {
+      width: 560px; height: 560px;
+      background: radial-gradient(circle, #06B6D4 0%, transparent 70%);
+      top: 20%; right: -180px;
+      animation: meshMove 20s ease-in-out infinite reverse;
+    }
+
+    .mesh-blob.b3 {
+      width: 520px; height: 520px;
+      background: radial-gradient(circle, #EC4899 0%, transparent 70%);
+      bottom: -160px; left: 30%;
+      animation: meshMove 28s ease-in-out infinite;
+    }
+
+    .mesh-blob.b4 {
+      width: 420px; height: 420px;
+      background: radial-gradient(circle, #38BDF8 0%, transparent 70%);
+      top: 55%; left: -120px;
+      opacity: 0.4;
+      animation: meshMove 22s ease-in-out infinite reverse;
+    }
+
+    @keyframes meshMove {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(80px, -50px) scale(1.15); }
+      66% { transform: translate(-60px, 40px) scale(0.92); }
+    }
+
+    /* grid overlay */
+    .grid-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(139, 92, 246, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(139, 92, 246, 0.06) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+      -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+    }
+
+    /* noise texture */
+    .noise {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      opacity: 0.035;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    /* ═══════════ SCROLLBAR ═══════════ */
+    ::-webkit-scrollbar { width: 9px; height: 9px; }
+    ::-webkit-scrollbar-track { background: #050512; }
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #8B5CF6, #06B6D4);
+      border-radius: 99px;
+      border: 2px solid #050512;
+    }
+    ::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #A855F7, #38BDF8); }
+
+    ::selection { background: rgba(139, 92, 246, 0.4); color: #fff; }
+
+    /* ═══════════ GLASS PANEL ═══════════ */
+    .glass {
+      position: relative;
+      background: linear-gradient(145deg, rgba(22, 22, 45, 0.55), rgba(10, 10, 25, 0.75));
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      backdrop-filter: blur(24px) saturate(140%);
+      -webkit-backdrop-filter: blur(24px) saturate(140%);
+      box-shadow:
+        0 30px 60px -30px rgba(0, 0, 0, 0.9),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    .glass-hi {
+      position: relative;
+      background: linear-gradient(145deg, rgba(22, 22, 45, 0.55), rgba(10, 10, 25, 0.75));
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      backdrop-filter: blur(24px) saturate(140%);
+      -webkit-backdrop-filter: blur(24px) saturate(140%);
+      box-shadow:
+        0 30px 60px -30px rgba(0, 0, 0, 0.9),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      overflow: hidden;
+    }
+
+    .glass-hi::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.6), rgba(6, 182, 212, 0.4), transparent 60%);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    .glass-hover { transition: transform .3s cubic-bezier(.16,1,.3,1), border-color .3s, box-shadow .3s; }
+    .glass-hover:hover {
+      transform: translateY(-4px);
+      border-color: rgba(139, 92, 246, 0.35);
+      box-shadow:
+        0 40px 70px -30px rgba(139, 92, 246, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+
+    /* ═══════════ BUTTONS ═══════════ */
+    .btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .5rem;
+      border-radius: 12px;
+      font-family: "Inter", sans-serif;
+      font-weight: 600;
+      transition: all .22s cubic-bezier(.16,1,.3,1);
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .btn-glass {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #CBD5E1;
+    }
+    .btn-glass:hover {
+      color: #fff;
+      border-color: rgba(139, 92, 246, 0.5);
+      background: rgba(139, 92, 246, 0.12);
+      box-shadow: 0 0 24px -6px rgba(139, 92, 246, 0.8);
+    }
+
+    .btn-holo {
+      position: relative;
+      color: #fff;
+      border: 1px solid transparent;
+      background:
+        linear-gradient(145deg, rgba(139, 92, 246, 0.35), rgba(6, 182, 212, 0.25)) padding-box,
+        linear-gradient(135deg, #8B5CF6, #06B6D4, #EC4899) border-box;
+      box-shadow: 0 0 28px -8px rgba(139, 92, 246, 0.9), inset 0 0 20px -12px rgba(255,255,255,0.6);
+    }
+    .btn-holo:hover {
+      box-shadow: 0 0 40px -6px rgba(139, 92, 246, 1), inset 0 0 24px -10px rgba(255,255,255,0.8);
+      transform: translateY(-1px);
+    }
+
+    .btn-lime {
+      background: linear-gradient(145deg, rgba(132, 204, 22, 0.25), rgba(6, 182, 212, 0.2));
+      border: 1px solid rgba(132, 204, 22, 0.45);
+      color: #D9F99D;
+    }
+    .btn-lime:hover {
+      border-color: rgba(132, 204, 22, 0.85);
+      box-shadow: 0 0 28px -6px rgba(132, 204, 22, 0.9);
+    }
+
+    .btn:active { transform: translateY(0) scale(.98); }
+
+    /* ═══════════ INPUT ═══════════ */
+    .input-glass {
+      width: 100%;
+      background: rgba(5, 5, 20, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      color: #F1F5F9;
+      transition: all .22s ease;
+    }
+    .input-glass::placeholder { color: rgba(139, 150, 172, 0.65); }
+    .input-glass:focus {
+      outline: none;
+      border-color: rgba(139, 92, 246, 0.65);
+      background: rgba(8, 8, 25, 0.9);
+      box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.12), 0 0 24px -10px rgba(139, 92, 246, 1);
+    }
+
+    /* ═══════════ METHOD BADGES ═══════════ */
+    .mbadge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: 8px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      border: 1px solid;
+      line-height: 1;
+    }
+    .m-get  { color: #6EE7B7; background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.45); box-shadow: 0 0 14px -6px rgba(16, 185, 129, 0.9); }
+    .m-post { color: #A5B4FC; background: rgba(99, 102, 241, 0.15); border-color: rgba(99, 102, 241, 0.5); box-shadow: 0 0 14px -6px rgba(99, 102, 241, 0.9); }
+    .m-error { color: #FDA4AF; background: rgba(244, 63, 94, 0.15); border-color: rgba(244, 63, 94, 0.5); box-shadow: 0 0 14px -6px rgba(244, 63, 94, 0.9); }
+
+    /* ═══════════ CATEGORY TABS ═══════════ */
+    .ctab {
+      position: relative;
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-family: "Inter", sans-serif;
+      font-size: 11.5px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      transition: all .2s ease;
+      cursor: pointer;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.02);
+      color: #8B96AC;
+    }
+    .ctab:hover { color: #E2E8F0; border-color: rgba(139, 92, 246, 0.4); }
+    .ctab-active {
+      color: #fff;
+      border-color: transparent;
+      background:
+        linear-gradient(145deg, rgba(139, 92, 246, 0.35), rgba(6, 182, 212, 0.25)) padding-box,
+        linear-gradient(135deg, #8B5CF6, #06B6D4, #EC4899) border-box;
+      box-shadow: 0 0 22px -8px rgba(139, 92, 246, 0.9);
+    }
+
+    /* ═══════════ ENDPOINT CARD ═══════════ */
+    .epcard {
+      position: relative;
+      padding: 16px;
+      border-radius: 16px;
+      background: linear-gradient(150deg, rgba(20, 20, 42, 0.7), rgba(8, 8, 22, 0.9));
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      transition: all .28s cubic-bezier(.16,1,.3,1);
+      cursor: pointer;
+      overflow: hidden;
+    }
+    .epcard::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0), rgba(139, 92, 246, 0));
+      transition: background .3s;
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+    .epcard:hover {
+      transform: translateY(-3px);
+      border-color: rgba(139, 92, 246, 0.35);
+      background: linear-gradient(150deg, rgba(28, 28, 55, 0.8), rgba(12, 12, 30, 0.95));
+      box-shadow: 0 24px 44px -28px rgba(139, 92, 246, 0.9);
+    }
+    .epcard:hover::before {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.7), rgba(6, 182, 212, 0.5), transparent 70%);
+    }
+
+    /* ═══════════ TERMINAL ═══════════ */
+    .term-line { display: block; }
+    .t-ok   { color: #86EFAC; }
+    .t-cmd  { color: #F1F5F9; font-weight: 600; }
+    .t-load { color: #67E8F9; }
+    .t-info { color: #C4B5FD; }
+    .t-dim  { color: #64748B; }
+
+    .cursor-blink {
+      display: inline-block;
+      width: 8px;
+      height: 14px;
+      background: linear-gradient(180deg, #8B5CF6, #06B6D4);
+      vertical-align: sub;
+      box-shadow: 0 0 12px rgba(139, 92, 246, 0.9);
+      animation: cursorBlink 900ms infinite steps(1);
+    }
+    @keyframes cursorBlink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    /* ═══════════ JSON SYNTAX ═══════════ */
+    .jk { color: #67E8F9; font-weight: 600; }
+    .js { color: #86EFAC; }
+    .jn { color: #FCD34D; font-weight: 600; }
+    .jb { color: #C4B5FD; font-weight: 700; }
+    .jl { color: #64748B; font-style: italic; }
+
+    /* ═══════════ FOLDER ACCORDION ═══════════ */
+    .folder-body {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 340ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .folder-body.open { grid-template-rows: 1fr; }
+
+    /* ═══════════ VIEW TRANSITION ═══════════ */
+    .v-trans {
+      transition: opacity 300ms cubic-bezier(.16,1,.3,1), transform 300ms cubic-bezier(.16,1,.3,1), filter 300ms;
+    }
+    .v-enter { opacity: 1; transform: translateY(0); filter: blur(0); pointer-events: auto; }
+    .v-leave { opacity: 0; transform: translateY(14px); filter: blur(6px); pointer-events: none; }
+
+    /* ═══════════ MODAL ═══════════ */
+    .modal-panel {
+      position: fixed;
+      left: 50%;
+      bottom: 0;
+      transform: translate(-50%, 105%);
+      opacity: 0;
+      z-index: 60;
+      width: 100%;
+      max-width: 40rem;
+      transition: transform 460ms cubic-bezier(0.16, 1, 0.3, 1), opacity 320ms ease;
+      pointer-events: none;
+    }
+    .modal-panel.active { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
+
+    @media (min-width: 640px) {
+      .modal-panel {
+        top: 50%;
+        bottom: auto;
+        transform: translate(-50%, -44%) scale(0.95);
+      }
+      .modal-panel.active { transform: translate(-50%, -50%) scale(1); }
+    }
+
+    /* ═══════════ SWEETALERT ═══════════ */
+    .swal2-popup.custom-swal {
+      background: linear-gradient(150deg, rgba(22, 22, 45, 0.95), rgba(8, 8, 20, 0.98)) !important;
+      border: 1px solid rgba(139, 92, 246, 0.5) !important;
+      border-radius: 16px !important;
+      padding: 1.15rem 1.5rem !important;
+      box-shadow: 0 0 44px -10px rgba(139, 92, 246, 0.95) !important;
+      backdrop-filter: blur(20px);
+    }
+    .swal2-title {
+      font-size: .85rem !important;
+      font-weight: 600 !important;
+      font-family: "JetBrains Mono", monospace !important;
+      color: #F1F5F9 !important;
+      letter-spacing: .02em;
+    }
+
+    /* ═══════════ HERO GRADIENT TEXT ═══════════ */
+    .hero-grad {
+      background: linear-gradient(120deg, #F1F5F9 0%, #A5B4FC 35%, #67E8F9 65%, #F1F5F9 100%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: gradientX 7s ease infinite;
+    }
+
+    @keyframes gradientX {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    /* ═══════════ NOISE / DECOR ═══════════ */
+    .ring-deco {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(139, 92, 246, 0.15);
+      pointer-events: none;
+    }
+
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* ═══════════ PULSE DOT ═══════════ */
+    .pulse-dot {
+      position: relative;
+      display: inline-flex;
+      width: 6px; height: 6px;
+    }
+    .pulse-dot::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: #84CC16;
+      animation: pulseRing 1.6s ease-out infinite;
+    }
+    .pulse-dot::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: #84CC16;
+    }
+    @keyframes pulseRing {
+      0% { transform: scale(1); opacity: 0.8; }
+      100% { transform: scale(3); opacity: 0; }
+    }
+
+    /* fade-up stagger */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-up { animation: fadeUp .7s cubic-bezier(.16,1,.3,1) both; }
+    .d-1 { animation-delay: .06s; }
+    .d-2 { animation-delay: .12s; }
+    .d-3 { animation-delay: .18s; }
+    .d-4 { animation-delay: .24s; }
+  </style>
+</head>
+
+<body class="min-h-screen flex flex-col font-body antialiased pb-24 sm:pb-0">
+
+  <!-- ══════════ ANIMATED BACKGROUND ══════════ -->
+  <div class="mesh-bg">
+    <div class="mesh-blob b1"></div>
+    <div class="mesh-blob b2"></div>
+    <div class="mesh-blob b3"></div>
+    <div class="mesh-blob b4"></div>
+  </div>
+  <div class="grid-overlay"></div>
+  <div class="noise"></div>
+
+  <!-- ══════════ HEADER ══════════ -->
+  <header class="sticky top-0 z-40 border-b border-white/[0.06] bg-void-950/60 backdrop-blur-2xl">
+    <div class="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-holo-violet/60 to-transparent"></div>
+
+    <div class="max-w-5xl mx-auto flex items-center justify-between gap-4 px-4 sm:px-8 py-3.5">
+
+      <!-- LOGO -->
+      <a href="#" onclick="smoothNavigate('home');return false;" class="flex items-center gap-3 group shrink-0">
+        <div class="relative">
+          <span class="absolute -inset-1.5 rounded-2xl bg-gradient-to-br from-holo-violet via-holo-cyan to-holo-pink opacity-50 blur-lg group-hover:opacity-90 transition-opacity"></span>
+          <img src="/media/DenzcOne.jpg" alt="DenzcOne"
+               class="relative w-10 h-10 rounded-xl object-cover border border-white/15 group-hover:scale-105 transition-transform" />
+        </div>
+        <div class="hidden xs:flex flex-col leading-none gap-1">
+          <span class="font-display font-bold text-[17px] tracking-[0.14em] text-white">DENZCONE</span>
+          <span class="font-mono text-[9px] tracking-[0.28em] text-holo-cyan/80 font-medium">BY JUSTPUTU'S</span>
+        </div>
+      </a>
+
+      <!-- DESKTOP NAV -->
+      <nav class="hidden sm:flex items-center gap-2.5">
+        <button onclick="smoothNavigate('home')" class="btn btn-glass px-4 py-2 text-[11.5px]">
+          <i data-lucide="home" class="w-3.5 h-3.5"></i><span>Home</span>
+        </button>
+        <button onclick="smoothNavigate('docs')" class="btn btn-holo px-4 py-2 text-[11.5px]">
+          <i data-lucide="terminal" class="w-3.5 h-3.5"></i><span>Docs</span>
+        </button>
+        <a href="https://wa.me/628895307489" target="_blank" class="btn btn-lime px-4 py-2 text-[11.5px]">
+          <i data-lucide="message-square" class="w-3.5 h-3.5"></i><span>Contact</span>
+        </a>
+      </nav>
+
+      <!-- MOBILE GITHUB -->
+      <a href="https://github.com/justputu/DenzcOne" target="_blank" class="sm:hidden btn btn-glass w-9 h-9">
+        <i data-lucide="github" class="w-4 h-4"></i>
+      </a>
+
+    </div>
+  </header>
+
+  <!-- ══════════ MAIN ══════════ -->
+  <main class="flex-1 max-w-5xl mx-auto w-full px-4 py-8 sm:py-14 relative z-10 space-y-7">
+
+    <!-- ───────── HOME VIEW ───────── -->
+    <div id="view-home" class="v-trans v-enter space-y-7">
+
+      <!-- HERO -->
+      <section class="text-center space-y-6 py-6 sm:py-10 relative">
+
+        <!-- floating rings decoration -->
+        <div class="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden">
+          <div class="ring-deco w-[340px] h-[340px]"></div>
+          <div class="ring-deco w-[480px] h-[480px]"></div>
+          <div class="ring-deco w-[620px] h-[620px]"></div>
+        </div>
+
+        <!-- badge -->
+        <div class="relative flex justify-center fade-up">
+          <div class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-holo-violet/30 bg-holo-violet/[0.08] backdrop-blur-md">
+            <span class="pulse-dot"></span>
+            <span class="font-mono text-[10px] font-semibold uppercase tracking-[0.24em] text-holo-violet">System Online · V3.0</span>
+          </div>
+        </div>
+
+        <!-- title -->
+        <h1 class="relative font-display font-bold text-[3rem] sm:text-7xl lg:text-8xl tracking-tight leading-[0.9] fade-up d-1">
+          <span class="block text-white">The Ultimate</span>
+          <span class="block hero-grad">REST API</span>
+          <span class="block text-white/70">Console</span>
+        </h1>
+
+        <!-- subtitle -->
+        <p class="relative text-slate-400 text-sm sm:text-base font-normal max-w-xl mx-auto leading-relaxed fade-up d-2">
+          Simple lightweight API base made by
+          <span class="font-mono font-semibold text-holo-cyan">justputu's</span>.
+          Cepat, stabil, dan siap digunakan untuk kebutuhan bot &amp; web modern.
+        </p>
+
+        <!-- CTA -->
+        <div class="relative flex items-center justify-center gap-3 fade-up d-3">
+          <button onclick="smoothNavigate('docs')" class="btn btn-holo px-6 py-3 text-[12.5px]">
+            <i data-lucide="zap" class="w-4 h-4"></i>
+            <span>Mulai Eksplorasi</span>
+          </button>
+          <a href="https://github.com/justputu/DenzcOne" target="_blank" class="btn btn-glass px-6 py-3 text-[12.5px]">
+            <i data-lucide="github" class="w-4 h-4"></i>
+            <span>GitHub</span>
+          </a>
+        </div>
+
+      </section>
+
+      <!-- BENTO STATS -->
+      <section class="grid grid-cols-1 sm:grid-cols-3 gap-4 fade-up d-3">
+
+        <!-- LATENCY -->
+        <div class="glass glass-hover p-5 relative overflow-hidden">
+          <div class="absolute -top-8 -right-8 w-24 h-24 rounded-full bg-holo-rose/25 blur-3xl"></div>
+          <div class="relative flex items-start justify-between mb-5">
+            <div>
+              <span class="font-mono text-[10px] font-semibold tracking-[0.22em] uppercase text-slate-500">Latency</span>
+              <div class="mt-1 text-[10px] text-slate-600 font-mono">real-time ping</div>
+            </div>
+            <div class="w-9 h-9 rounded-xl border border-holo-rose/35 bg-holo-rose/10 flex items-center justify-center text-holo-rose">
+              <i data-lucide="activity" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div id="bottom-latency" class="relative font-display text-3xl font-bold text-white tracking-tight">
+            …<span class="text-sm text-slate-500 font-mono">ms</span>
+          </div>
+        </div>
+
+        <!-- ENDPOINTS -->
+        <div class="glass glass-hover p-5 relative overflow-hidden">
+          <div class="absolute -top-8 -right-8 w-24 h-24 rounded-full bg-holo-cyan/25 blur-3xl"></div>
+          <div class="relative flex items-start justify-between mb-5">
+            <div>
+              <span class="font-mono text-[10px] font-semibold tracking-[0.22em] uppercase text-slate-500">Endpoints</span>
+              <div class="mt-1 text-[10px] text-slate-600 font-mono">total aktif</div>
+            </div>
+            <div class="w-9 h-9 rounded-xl border border-holo-cyan/35 bg-holo-cyan/10 flex items-center justify-center text-holo-cyan">
+              <i data-lucide="layers" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div id="stat-total" class="relative font-display text-3xl font-bold text-white tracking-tight">–</div>
+        </div>
+
+        <!-- CATEGORIES -->
+        <div class="glass glass-hover p-5 relative overflow-hidden">
+          <div class="absolute -top-8 -right-8 w-24 h-24 rounded-full bg-holo-violet/25 blur-3xl"></div>
+          <div class="relative flex items-start justify-between mb-5">
+            <div>
+              <span class="font-mono text-[10px] font-semibold tracking-[0.22em] uppercase text-slate-500">Categories</span>
+              <div class="mt-1 text-[10px] text-slate-600 font-mono">folder terdaftar</div>
+            </div>
+            <div class="w-9 h-9 rounded-xl border border-holo-violet/40 bg-holo-violet/12 flex items-center justify-center text-holo-violet">
+              <i data-lucide="folder-tree" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div id="stat-categories" class="relative font-display text-3xl font-bold text-white tracking-tight">–</div>
+        </div>
+
+      </section>
+
+      <!-- TERMINAL -->
+      <section class="glass-hi p-1 fade-up d-4">
+        <div class="relative rounded-[19px] overflow-hidden">
+
+          <!-- header -->
+          <div class="px-5 py-4 flex items-center justify-between border-b border-white/[0.07] bg-gradient-to-r from-holo-violet/[0.08] via-transparent to-holo-cyan/[0.06]">
+            <div class="flex items-center gap-3">
+              <div class="flex items-center gap-1.5">
+                <span class="w-3 h-3 rounded-full bg-holo-rose/90 shadow-[0_0_8px_rgba(244,63,94,0.7)]"></span>
+                <span class="w-3 h-3 rounded-full bg-holo-amber/90 shadow-[0_0_8px_rgba(245,158,11,0.7)]"></span>
+                <span class="w-3 h-3 rounded-full bg-holo-lime/90 shadow-[0_0_8px_rgba(132,204,22,0.7)]"></span>
+              </div>
+              <span class="ml-2 font-mono text-[11px] font-medium text-slate-500">justputu@DenzcOne:~#</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="font-mono text-[9px] font-semibold uppercase tracking-wider bg-holo-violet/15 text-holo-violet border border-holo-violet/35 px-2 py-1 rounded-md">Node ESM</span>
+              <button onclick="rescanConsole()" class="btn btn-glass px-2.5 py-1.5 text-[10px]">
+                <i data-lucide="rotate-cw" class="w-3 h-3"></i>
+                <span class="hidden xs:inline">Rescan</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- terminal body -->
+          <div class="bg-[#03030B]/90">
+            <div id="terminal-body"
+                 class="p-5 font-mono text-[12px] leading-relaxed text-slate-300 min-h-[190px] max-h-[260px] overflow-y-auto space-y-0.5 select-text">
+              <div id="terminal-content"></div>
+              <div id="terminal-active-line" class="text-white">
+                <span id="terminal-typing"></span><span class="cursor-blink"></span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- QUICK CTA BANNER -->
+      <div onclick="smoothNavigate('docs')"
+           class="glass-hi glass-hover p-5 cursor-pointer flex items-center justify-between gap-4 group fade-up d-4">
+
+        <div class="flex items-center gap-4 min-w-0 relative">
+          <div class="relative shrink-0">
+            <span class="absolute -inset-1.5 rounded-2xl bg-gradient-to-br from-holo-violet to-holo-cyan opacity-40 blur-lg"></span>
+            <div class="relative w-12 h-12 rounded-2xl border border-holo-violet/40 bg-gradient-to-br from-holo-violet/25 to-holo-cyan/20 flex items-center justify-center">
+              <i data-lucide="sparkles" class="w-5 h-5 text-holo-violet"></i>
+            </div>
+          </div>
+          <div class="min-w-0">
+            <h3 class="font-display font-semibold text-base text-white">Eksplorasi Katalog API</h3>
+            <p class="text-xs text-slate-400 mt-1">Klik untuk melihat semua endpoint &amp; tes parameter langsung</p>
+          </div>
+        </div>
+
+        <div class="shrink-0 w-10 h-10 rounded-xl border border-holo-cyan/35 bg-holo-cyan/[0.08] flex items-center justify-center text-holo-cyan group-hover:translate-x-1.5 transition-transform">
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ───────── DOCS VIEW ───────── -->
+    <div id="view-docs" class="v-trans v-leave hidden space-y-6">
+
+      <!-- SEARCH HEADER -->
+      <div class="glass-hi p-5 sm:p-6 space-y-5">
+        <div class="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2 mb-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-holo-cyan shadow-[0_0_10px_#06B6D4]"></span>
+              <span class="font-mono text-[10px] font-semibold tracking-[0.22em] uppercase text-holo-cyan">Directory</span>
+            </div>
+            <h2 class="font-display font-bold text-2xl sm:text-3xl text-white tracking-tight">Endpoint Explorer</h2>
+            <p class="text-xs text-slate-400 mt-1.5">Cari, telusuri folder kategori, dan jalankan pengujian parameter.</p>
+          </div>
+
+          <!-- SEARCH -->
+          <div class="relative w-full sm:w-80 shrink-0">
+            <i data-lucide="search" class="w-4 h-4 text-holo-violet/70 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+            <input type="text" id="search-input" placeholder="Cari endpoint…"
+                   class="input-glass pl-11 pr-4 py-3 text-sm font-mono" />
+          </div>
+        </div>
+
+        <!-- TABS -->
+        <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pt-1" id="category-tabs"></div>
+      </div>
+
+      <!-- LIST -->
+      <div id="endpoint-container" class="space-y-4">
+        <div class="glass text-center py-16 text-xs font-mono font-semibold text-slate-500">
+          <span class="inline-flex items-center gap-2.5">
+            <i data-lucide="loader-2" class="w-4 h-4 animate-spin text-holo-violet"></i>
+            Memuat katalog endpoint…
+          </span>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ══════════ MOBILE BOTTOM NAV ══════════ -->
+  <div class="fixed bottom-4 inset-x-4 z-40 sm:hidden">
+    <div class="glass p-1.5 flex items-center justify-around gap-1 rounded-2xl">
+      <button onclick="smoothNavigate('home')" class="flex-1 py-2.5 rounded-xl font-body text-[10.5px] font-semibold flex flex-col items-center gap-1.5 text-slate-400 hover:text-holo-violet hover:bg-white/[0.04] transition-colors">
+        <i data-lucide="home" class="w-4 h-4"></i>
+        <span>Home</span>
+      </button>
+      <button onclick="smoothNavigate('docs')" class="flex-1 py-2.5 rounded-xl font-body text-[10.5px] font-semibold flex flex-col items-center gap-1.5 btn-holo">
+        <i data-lucide="terminal" class="w-4 h-4"></i>
+        <span>Docs</span>
+      </button>
+      <a href="https://wa.me/62" target="_blank" class="flex-1 py-2.5 rounded-xl font-body text-[10.5px] font-semibold flex flex-col items-center gap-1.5 text-slate-400 hover:text-holo-lime hover:bg-white/[0.04] transition-colors">
+        <i data-lucide="message-square" class="w-4 h-4"></i>
+        <span>Contact</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- ══════════ MODAL ══════════ -->
+  <div id="modal-backdrop"
+       class="fixed inset-0 bg-void-950/85 backdrop-blur-xl z-50 opacity-0 pointer-events-none transition-opacity duration-300"
+       onclick="closeModal()"></div>
+
+  <div id="modal-sheet"
+       class="modal-panel glass-hi flex flex-col overflow-hidden max-h-[92vh] sm:max-h-[88vh] rounded-t-3xl sm:rounded-3xl">
+
+    <!-- modal header -->
+    <div class="relative flex items-center justify-between px-5 py-4 border-b border-white/[0.08] bg-gradient-to-r from-holo-violet/[0.15] via-holo-cyan/[0.08] to-transparent shrink-0">
+      <div class="flex items-center gap-3 min-w-0">
+        <span id="modal-badge-method" class="mbadge m-get">GET</span>
+        <h3 id="modal-title" class="font-display font-semibold text-base text-white truncate">Endpoint</h3>
+      </div>
+      <button onclick="closeModal()"
+              class="shrink-0 w-8 h-8 rounded-xl border border-white/12 bg-white/[0.04] text-slate-400 hover:text-white hover:border-holo-rose/60 hover:bg-holo-rose/15 transition-all flex items-center justify-center">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <!-- modal body -->
+    <div class="flex-1 overflow-y-auto p-5 space-y-5">
+
+      <div>
+        <label class="block text-[10px] font-semibold font-mono uppercase tracking-[0.2em] text-slate-500 mb-2">Deskripsi</label>
+        <p id="modal-desc" class="text-[13px] text-slate-300 leading-relaxed">–</p>
+      </div>
+
+      <div>
+        <label class="block text-[10px] font-semibold font-mono uppercase tracking-[0.2em] text-slate-500 mb-2">Path Route</label>
+        <div class="flex items-center justify-between gap-3 p-3 rounded-xl bg-[#03030B]/80 border border-holo-violet/25">
+          <span id="modal-path" class="truncate font-mono text-[11.5px] font-semibold text-holo-cyan">/</span>
+          <button onclick="copyRoute()" class="btn btn-glass shrink-0 px-2.5 py-1.5 text-[10px]">
+            <i data-lucide="copy" class="w-3 h-3"></i><span>Copy</span>
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-[10px] font-semibold font-mono uppercase tracking-[0.2em] text-slate-500 mb-2.5">Input Parameter</label>
+        <form id="modal-form" onsubmit="executeRequest(event)" class="space-y-4">
+          <div id="modal-inputs" class="space-y-3.5"></div>
+
+          <button type="submit" id="btn-submit"
+                  class="btn btn-holo w-full py-3.5 text-[12px] font-semibold tracking-wide uppercase">
+            <span id="btn-submit-icon"><i data-lucide="send" class="w-4 h-4"></i></span>
+            <span id="btn-submit-text">Jalankan Request</span>
+          </button>
+        </form>
+      </div>
+
+      <div id="modal-response-wrapper" class="space-y-3 hidden">
+        <div class="flex items-center justify-between gap-3 flex-wrap">
+          <div class="flex items-center gap-2 flex-wrap">
+            <label class="text-[10px] font-semibold font-mono uppercase tracking-[0.2em] text-slate-500">Response</label>
+            <span id="modal-status-pill" class="mbadge m-get">200 OK</span>
+            <span id="modal-time-pill" class="font-mono text-[10px] font-semibold text-slate-500">0ms</span>
+          </div>
+          <button onclick="copyResponse()" class="btn btn-glass px-2.5 py-1.5 text-[10px]">
+            <i data-lucide="copy" class="w-3 h-3"></i><span>Copy JSON</span>
+          </button>
+        </div>
+
+        <div class="rounded-xl border border-white/[0.08] bg-[#03030B]/90 p-4 overflow-x-auto max-h-64 select-text">
+          <pre id="modal-response-body" class="font-mono text-[11.5px] leading-relaxed text-slate-200"></pre>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════ FOOTER ══════════ -->
+  <footer class="relative z-10 border-t border-white/[0.06] mt-auto bg-void-950/70 backdrop-blur-sm">
+    <div class="max-w-5xl mx-auto px-4 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-500 text-center sm:text-left">
+      <div class="font-mono tracking-wide">© 2026 JUSTPUTU'S — DENZCONE REST API</div>
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-holo-lime/35 bg-holo-lime/[0.08] text-holo-lime font-mono font-semibold uppercase tracking-wider text-[10px]">
+          <span class="pulse-dot"></span>
+          V3.0 Stable
+        </span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ══════════ SCRIPT ══════════ -->
+  <script>
+    let registry = {};
+    let activeEndpoint = null;
+    let currentCategory = 'all';
+    let isTerminalTyping = false;
+    let rawResponseText = '';
+    const openFolders = new Set();
+
+    /* ── NAVIGATION ─────────────────────────────── */
+    function smoothNavigate(targetView) {
+      const homeView = document.getElementById('view-home');
+      const docsView = document.getElementById('view-docs');
+
+      const current = targetView === 'docs' ? homeView : docsView;
+      const destination = targetView === 'docs' ? docsView : homeView;
+
+      current.classList.remove('v-enter');
+      current.classList.add('v-leave');
+
+      setTimeout(() => {
+        current.classList.add('hidden');
+        destination.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        setTimeout(() => {
+          destination.classList.remove('v-leave');
+          destination.classList.add('v-enter');
+        }, 60);
+      }, 240);
+    }
+
+    /* ── NOTIFY ─────────────────────────────────── */
+    const notify = (icon, title) => {
+      Swal.fire({
+        icon, title,
+        position: 'center',
+        showConfirmButton: false,
+        timer: 1600,
+        customClass: { popup: 'custom-swal' },
+        iconColor: icon === 'success' ? '#8B5CF6' : '#F43F5E'
+      });
+    };
+
+    /* ── JSON SYNTAX HIGHLIGHT ──────────────────── */
+    const formatCodeHighlight = (data) => {
+      let json = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+      json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return json.replace(
+        /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
+        (match) => {
+          let cls = 'jn';
+          if (/^"/.test(match)) cls = /:$/.test(match) ? 'jk' : 'js';
+          else if (/true|false/.test(match)) cls = 'jb';
+          else if (/null/.test(match)) cls = 'jl';
+          return `<span class="${cls}">${match}</span>`;
+        }
+      );
+    };
+
+    /* ── TERMINAL ENGINE ────────────────────────── */
+    const typeTerminalLine = (text, speed = 14) => {
+      return new Promise((resolve) => {
+        const typingEl = document.getElementById('terminal-typing');
+        const terminalBody = document.getElementById('terminal-body');
+        let index = 0;
+        typingEl.textContent = '';
+
+        const interval = setInterval(() => {
+          if (index < text.length) {
+            typingEl.textContent += text.charAt(index);
+            index++;
+            terminalBody.scrollTop = terminalBody.scrollHeight;
+          } else {
+            clearInterval(interval);
+            setTimeout(resolve, 30);
+          }
+        }, speed);
+      });
+    };
+
+    const commitTerminalLine = (colorClass = 't-dim') => {
+      const typingEl = document.getElementById('terminal-typing');
+      const contentEl = document.getElementById('terminal-content');
+      const terminalBody = document.getElementById('terminal-body');
+
+      const lineDiv = document.createElement('div');
+      lineDiv.className = `term-line ${colorClass}`;
+      lineDiv.textContent = typingEl.textContent;
+      contentEl.appendChild(lineDiv);
+      typingEl.textContent = '';
+      terminalBody.scrollTop = terminalBody.scrollHeight;
+    };
+
+    const runConsoleBootSequence = async () => {
+      if (isTerminalTyping) return;
+      isTerminalTyping = true;
+
+      const contentEl = document.getElementById('terminal-content');
+      contentEl.innerHTML = '';
+
+      await typeTerminalLine('[ OK ] DenzcOne Engine v3.0 — Initializing core', 8);
+      commitTerminalLine('t-ok');
+
+      await typeTerminalLine('[ OK ] Router synchronized with plugin watcher', 8);
+      commitTerminalLine('t-ok');
+
+      await typeTerminalLine('justputu@DenzcOne:~# denzcone scan --active', 10);
+      commitTerminalLine('t-cmd');
+
+      const categories = Object.keys(registry);
+      let totalLoaded = 0;
+
+      for (const cat of categories) {
+        const list = registry[cat] || [];
+        for (const ep of list) {
+          totalLoaded++;
+          const method = (ep.method && ep.method[0]) || 'GET';
+          await typeTerminalLine(`[LOADED] ${method} ${ep.endpoint}`, 4);
+          commitTerminalLine('t-load');
+        }
+      }
+
+      await typeTerminalLine(`[INFO] ${totalLoaded} endpoints active · ${categories.length} categories indexed`, 8);
+      commitTerminalLine('t-info');
+
+      await typeTerminalLine('justputu@DenzcOne:~# ready', 8);
+      commitTerminalLine('t-dim');
+
+      isTerminalTyping = false;
+    };
+
+    async function rescanConsole() {
+      await fetchEndpoints();
+      await runConsoleBootSequence();
+      notify('success', 'Gokil Coy Awokawokawok');
+    }
+
+    /* ── FETCH ENDPOINTS ────────────────────────── */
+    async function fetchEndpoints() {
+      try {
+        const res = await fetch(`/api/endpoints?_t=${Date.now()}`, {
+          cache: 'no-store',
+          headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
+        });
+        const data = await res.json();
+
+        if (data.status && data.result) {
+          registry = data.result.endpoints || {};
+          document.getElementById('stat-total').textContent = data.result.total || 0;
+          document.getElementById('stat-categories').textContent = Object.keys(registry).length;
+
+          buildCategoryTabs();
+          renderEndpoints();
+        }
+      } catch (err) {
+        document.getElementById('endpoint-container').innerHTML = `
+          <div class="glass border-holo-rose/40 text-center py-12 px-4">
+            <i data-lucide="wifi-off" class="w-6 h-6 text-holo-rose mx-auto mb-3"></i>
+            <p class="text-xs font-mono font-semibold text-holo-rose">Gagal memuat daftar endpoint dari server.</p>
+          </div>
+        `;
+        if (window.lucide) lucide.createIcons();
+      }
+    }
+
+    /* ── CATEGORY TABS ──────────────────────────── */
+    function buildCategoryTabs() {
+      const container = document.getElementById('category-tabs');
+      container.innerHTML = '';
+
+      const allBtn = document.createElement('button');
+      allBtn.onclick = () => filterCategory('all');
+      allBtn.className = `ctab ${currentCategory === 'all' ? 'ctab-active' : ''}`;
+      allBtn.textContent = 'Semua';
+      container.appendChild(allBtn);
+
+      Object.keys(registry).forEach(cat => {
+        const btn = document.createElement('button');
+        btn.onclick = () => filterCategory(cat);
+        btn.className = `ctab ${currentCategory === cat ? 'ctab-active' : ''}`;
+        btn.textContent = cat;
+        container.appendChild(btn);
+      });
+    }
+
+    function filterCategory(cat) {
+      currentCategory = cat;
+      buildCategoryTabs();
+      renderEndpoints(document.getElementById('search-input').value.trim().toLowerCase());
+    }
+
+    /* ── FOLDER TOGGLE ──────────────────────────── */
+    function toggleFolder(cat) {
+      const content = document.getElementById(`folder-content-${cat}`);
+      const chevron = document.getElementById(`folder-chevron-${cat}`);
+      const icon = document.getElementById(`folder-icon-${cat}`);
+
+      if (!content) return;
+      const isNowOpen = !openFolders.has(cat);
+
+      if (isNowOpen) {
+        openFolders.add(cat);
+        content.classList.add('open');
+        chevron.style.transform = 'rotate(180deg)';
+        icon.setAttribute('data-lucide', 'folder-open');
+      } else {
+        openFolders.delete(cat);
+        content.classList.remove('open');
+        chevron.style.transform = 'rotate(0deg)';
+        icon.setAttribute('data-lucide', 'folder');
+      }
+      lucide.createIcons();
+    }
+
+    /* ── RENDER ENDPOINTS ───────────────────────── */
+    function renderEndpoints(searchQuery = '') {
+      const container = document.getElementById('endpoint-container');
+      container.innerHTML = '';
+
+      const categories = Object.keys(registry);
+      let count = 0;
+
+      categories.forEach(cat => {
+        if (currentCategory !== 'all' && currentCategory !== cat) return;
+
+        const endpoints = registry[cat].filter(ep => {
+          if (!searchQuery) return true;
+          return ep.name.toLowerCase().includes(searchQuery) ||
+                 ep.endpoint.toLowerCase().includes(searchQuery) ||
+                 ep.description.toLowerCase().includes(searchQuery);
+        });
+
+        if (endpoints.length === 0) return;
+        count += endpoints.length;
+
+        /* accordion mode */
+        if (currentCategory === 'all' && !searchQuery) {
+          const isOpen = openFolders.has(cat);
+          const folderBox = document.createElement('div');
+          folderBox.className = 'glass overflow-hidden';
+
+          folderBox.innerHTML = `
+            <div onclick="toggleFolder('${cat}')"
+                 class="p-4 flex items-center justify-between cursor-pointer bg-white/[0.02] hover:bg-white/[0.05] transition-colors select-none border-b border-white/[0.07]">
+              <div class="flex items-center gap-3.5">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-holo-violet/25 to-holo-cyan/20 border border-holo-violet/35 flex items-center justify-center shrink-0">
+                  <i data-lucide="${isOpen ? 'folder-open' : 'folder'}" id="folder-icon-${cat}" class="w-4 h-4 text-holo-violet"></i>
+                </div>
+                <div>
+                  <h3 class="text-[13px] font-display font-semibold text-white">${cat}</h3>
+                  <span class="text-[10px] font-mono font-medium text-slate-500 tracking-wider">${endpoints.length} ENDPOINTS</span>
+                </div>
+              </div>
+              <div class="w-8 h-8 rounded-lg border border-white/12 bg-white/[0.04] flex items-center justify-center text-slate-400">
+                <i data-lucide="chevron-down" id="folder-chevron-${cat}" class="w-3.5 h-3.5 transition-transform duration-300" style="transform: ${isOpen ? 'rotate(180deg)' : 'rotate(0deg)'}"></i>
+              </div>
+            </div>
+            <div id="folder-content-${cat}" class="folder-body ${isOpen ? 'open' : ''}">
+              <div class="overflow-hidden">
+                <div class="p-4 grid grid-cols-1 gap-3" id="folder-grid-${cat}"></div>
+              </div>
+            </div>
+          `;
+
+          container.appendChild(folderBox);
+          const grid = document.getElementById(`folder-grid-${cat}`);
+          endpoints.forEach(ep => grid.appendChild(createEndpointCard(ep)));
+        }
+        /* flat mode */
+        else {
+          const block = document.createElement('div');
+          block.className = 'space-y-3';
+
+          block.innerHTML = `
+            <div class="flex items-center gap-2.5 pb-2 border-b border-white/[0.08]">
+              <span class="w-1.5 h-1.5 rounded-full bg-holo-cyan shadow-[0_0_10px_#06B6D4]"></span>
+              <h3 class="text-[12.5px] font-display font-semibold uppercase tracking-[0.14em] text-white">${cat}</h3>
+              <span class="text-[10px] font-mono font-medium text-slate-500">(${endpoints.length})</span>
+            </div>
+            <div class="grid grid-cols-1 gap-3" id="grid-${cat}"></div>
+          `;
+
+          container.appendChild(block);
+          const grid = document.getElementById(`grid-${cat}`);
+          endpoints.forEach(ep => grid.appendChild(createEndpointCard(ep)));
+        }
+      });
+
+      if (count === 0) {
+        container.innerHTML = `
+          <div class="glass text-center py-16 px-4">
+            <i data-lucide="search-x" class="w-6 h-6 text-slate-600 mx-auto mb-3"></i>
+            <p class="text-xs font-mono font-semibold text-slate-500">Tidak ada endpoint yang cocok dengan pencarian.</p>
+          </div>
+        `;
+      }
+
+      lucide.createIcons();
+    }
+
+    /* ── ENDPOINT CARD ──────────────────────────── */
+    function createEndpointCard(ep) {
+      const card = document.createElement('div');
+      card.className = 'epcard flex flex-col justify-between gap-3';
+      card.onclick = () => openModal(ep);
+
+      const method = (ep.method && ep.method[0]) || 'GET';
+      const badgeCls = method === 'POST' ? 'm-post' : 'm-get';
+
+      card.innerHTML = `
+        <div>
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <h4 class="text-[12.5px] font-display font-semibold text-white truncate">${ep.name}</h4>
+            <span class="mbadge ${badgeCls}">${method}</span>
+          </div>
+          <p class="text-[11.5px] text-slate-400 leading-relaxed line-clamp-2">${ep.description || 'Tanpa deskripsi tambahan.'}</p>
+        </div>
+        <div class="flex items-center justify-between pt-3 border-t border-white/[0.06] font-mono text-[10.5px]">
+          <span class="truncate max-w-[180px] sm:max-w-[300px] text-holo-cyan/90 font-medium">${ep.endpoint}</span>
+          <span class="flex items-center gap-1.5 text-slate-500 font-semibold tracking-wider hover:text-holo-violet transition-colors">
+            <span>TEST</span>
+            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+          </span>
+        </div>
+      `;
+      return card;
+    }
+
+    /* ── MODAL OPEN / CLOSE ─────────────────────── */
+    function openModal(ep) {
+      activeEndpoint = ep;
+      const modal = document.getElementById('modal-sheet');
+      const backdrop = document.getElementById('modal-backdrop');
+
+      document.getElementById('modal-title').textContent = ep.name;
+      document.getElementById('modal-desc').textContent = ep.description || '–';
+      document.getElementById('modal-path').textContent = ep.endpoint;
+
+      const method = (ep.method && ep.method[0]) || 'GET';
+      const badge = document.getElementById('modal-badge-method');
+      badge.textContent = method;
+      badge.className = `mbadge ${method === 'POST' ? 'm-post' : 'm-get'}`;
+
+      const inputsContainer = document.getElementById('modal-inputs');
+      inputsContainer.innerHTML = '';
+
+      const params = ep.params || {};
+      const keys = Object.keys(params);
+
+      if (keys.length === 0) {
+        inputsContainer.innerHTML = `
+          <div class="text-[11.5px] font-mono font-medium text-slate-400 p-4 rounded-xl bg-white/[0.03] border border-white/[0.08] flex items-center gap-3">
+            <i data-lucide="info" class="w-4 h-4 text-holo-cyan shrink-0"></i>
+            Endpoint ini tidak memerlukan parameter input.
+          </div>
+        `;
+      } else {
+        keys.forEach(key => {
+          const item = params[key];
+          const isRequired = typeof item === 'object' ? item.required : false;
+          const desc = typeof item === 'object' ? item.description : '';
+
+          const group = document.createElement('div');
+          group.className = 'space-y-1.5';
+          group.innerHTML = `
+            <div class="flex items-center justify-between gap-3 font-mono text-[11px]">
+              <label class="text-slate-300 font-semibold tracking-wide">${key} ${isRequired ? '<span class="text-holo-rose">*</span>' : ''}</label>
+              <span class="text-[10px] text-slate-500 truncate">${desc}</span>
+            </div>
+            <input type="text" name="${key}" ${isRequired ? 'required' : ''} placeholder="Masukkan ${key}…"
+                   class="input-glass px-3.5 py-2.5 text-sm font-mono" />
+          `;
+          inputsContainer.appendChild(group);
+        });
+      }
+
+      document.getElementById('modal-response-wrapper').classList.add('hidden');
+      document.body.style.overflow = 'hidden';
+
+      backdrop.classList.remove('opacity-0', 'pointer-events-none');
+      backdrop.classList.add('opacity-100');
+
+      requestAnimationFrame(() => modal.classList.add('active'));
+      lucide.createIcons();
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('modal-sheet');
+      const backdrop = document.getElementById('modal-backdrop');
+
+      modal.classList.remove('active');
+      backdrop.classList.remove('opacity-100');
+      backdrop.classList.add('opacity-0', 'pointer-events-none');
+
+      document.body.style.overflow = '';
+      activeEndpoint = null;
+    }
+
+    /* ── EXECUTE REQUEST ────────────────────────── */
+    async function executeRequest(e) {
+      e.preventDefault();
+      if (!activeEndpoint) return;
+
+      const submitBtn = document.getElementById('btn-submit');
+      const submitText = document.getElementById('btn-submit-text');
+      const submitIcon = document.getElementById('btn-submit-icon');
+      const responseWrapper = document.getElementById('modal-response-wrapper');
+      const responseBody = document.getElementById('modal-response-body');
+      const statusPill = document.getElementById('modal-status-pill');
+      const timePill = document.getElementById('modal-time-pill');
+
+      submitBtn.disabled = true;
+      submitBtn.classList.add('opacity-60', 'pointer-events-none');
+      submitText.textContent = 'Memproses…';
+      submitIcon.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>';
+      lucide.createIcons();
+
+      const formData = new FormData(e.target);
+      const queryParams = new URLSearchParams();
+      const bodyPayload = {};
+
+      for (const [key, val] of formData.entries()) {
+        if (val.trim()) {
+          queryParams.append(key, val.trim());
+          bodyPayload[key] = val.trim();
+        }
+      }
+
+      const method = (activeEndpoint.method && activeEndpoint.method[0]) || 'GET';
+      let url = activeEndpoint.endpoint;
+      const options = { method };
+
+      if (method === 'GET') {
+        const qs = queryParams.toString();
+        if (qs) url += `?${qs}`;
+      } else {
+        options.headers = { 'Content-Type': 'application/json' };
+        options.body = JSON.stringify(bodyPayload);
+      }
+
+      const start = performance.now();
+
+      try {
+        const response = await fetch(url, options);
+        const duration = Math.round(performance.now() - start);
+        const json = await response.json();
+
+        rawResponseText = JSON.stringify(json, null, 2);
+
+        statusPill.textContent = `${response.status} ${response.statusText || 'OK'}`;
+        statusPill.className = `mbadge ${response.ok ? 'm-get' : 'm-error'}`;
+
+        timePill.textContent = `${duration}ms`;
+        responseBody.innerHTML = formatCodeHighlight(json);
+        responseWrapper.classList.remove('hidden');
+
+        if (response.ok) {
+          notify('success', `Berhasil (${response.status})`);
+        } else {
+          notify('error', json.message || 'Request Gagal');
+        }
+      } catch (err) {
+        const duration = Math.round(performance.now() - start);
+        const errorObj = { status: false, message: err.message };
+        rawResponseText = JSON.stringify(errorObj, null, 2);
+
+        statusPill.textContent = 'ERROR';
+        statusPill.className = 'mbadge m-error';
+        timePill.textContent = `${duration}ms`;
+        responseBody.innerHTML = formatCodeHighlight(errorObj);
+        responseWrapper.classList.remove('hidden');
+
+        notify('error', err.message || 'Gagal mengeksekusi request');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-60', 'pointer-events-none');
+        submitText.textContent = 'Jalankan Request';
+        submitIcon.innerHTML = '<i data-lucide="send" class="w-4 h-4"></i>';
+        lucide.createIcons();
+      }
+    }
+
+    /* ── CLIPBOARD ──────────────────────────────── */
+    function copyRoute() {
+      if (!activeEndpoint) return;
+      navigator.clipboard.writeText(window.location.origin + activeEndpoint.endpoint);
+      notify('success', 'Route disalin');
+    }
+
+    function copyResponse() {
+      if (rawResponseText) {
+        navigator.clipboard.writeText(rawResponseText);
+        notify('success', 'JSON disalin');
+      }
+    }
+
+    /* ── LATENCY ────────────────────────────────── */
+    async function checkLatency() {
+      const bottomDisplay = document.getElementById('bottom-latency');
+      const start = performance.now();
+      try {
+        await fetch('/tools/ping');
+        const duration = Math.round(performance.now() - start);
+        bottomDisplay.innerHTML = `${duration}<span class="text-sm text-slate-500 font-mono">ms</span>`;
+      } catch {
+        bottomDisplay.innerHTML = `<span class="text-holo-rose text-base">Offline</span>`;
+      }
+    }
+
+    /* ── BOOT ───────────────────────────────────── */
+    window.addEventListener('DOMContentLoaded', async () => {
+      lucide.createIcons();
+      await fetchEndpoints();
+      checkLatency();
+      await runConsoleBootSequence();
+
+      document.getElementById('search-input').addEventListener('input', (e) => {
+        renderEndpoints(e.target.value.trim().toLowerCase());
+      });
+    });
+  </script>
+</body>
+</html>
