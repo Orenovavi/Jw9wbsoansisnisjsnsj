@@ -1,24 +1,55 @@
-import * as Pinterest from "@myno_21/pinterest-scraper";
+import axios from "axios";
 
-const extractPinId = (url) => {
-  if (!url) return null;
-  const match = url.match(/\/pin\/(\d+)/);
-  if (match) return match[1];
-  if (url.includes("pin.it/")) {
-    return url.split("pin.it/")[1]?.split(/[/?#]/)[0] || null;
-  }
-  return null;
+const HEADERS = {
+  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+  "Accept": "application/json, text/plain, */*",
+  "Accept-Language": "id-ID,id;q=0.9,en;q=0.8",
+  "X-Requested-With": "XMLHttpRequest",
+  "Referer": "https://id.pinterest.com/"
 };
 
-const isValidPinterestUrl = (url) => {
-  if (!url) return false;
-  return /pinterest\.[a-z.]+\/pin\//.test(url) || /pin\.it\//.test(url);
+const buildSearchUrl = (query) => {
+  const payload = {
+    options: {
+      query,
+      scope: "pins",
+      rs: "typed",
+      bookmarks: [""]
+    },
+    context: {}
+  };
+
+  const encoded = encodeURIComponent(JSON.stringify(payload));
+  return `https://id.pinterest.com/resource/BaseSearchResource/get/?source_url=%2Fsearch%2Fpins%2F%3Fq%3D${encodeURIComponent(query)}&data=${encoded}`;
+};
+
+const parseResults = (data, limit) => {
+  const raw = data?.resource_response?.data?.results || [];
+
+  return raw.slice(0, limit).map((pin) => ({
+    pin_id: pin.id || null,
+    title: pin.grid_title || pin.title || null,
+    description: pin.description || null,
+    username: pin.pinner?.username || null,
+    fullname: pin.pinner?.full_name || null,
+    image:
+      pin.images?.orig?.url ||
+      pin.images?.["736x"]?.url ||
+      pin.images?.["564x"]?.url ||
+      pin.images?.["236x"]?.url ||
+      null,
+    thumbnail: pin.images?.["236x"]?.url || null,
+    width: pin.images?.orig?.width || null,
+    height: pin.images?.orig?.height || null,
+    link: pin.id ? `https://www.pinterest.com/pin/${pin.id}/` : null,
+    is_video: Boolean(pin.videos)
+  }));
 };
 
 export default {
   name: "Pinterest Search",
   category: "search",
-  description: "Cari pin di Pinterest berdasarkan kata kunci, lengkap dengan caption/deskripsi",
+  description: "Cari pin Pinterest lengkap dengan judul dan deskripsi",
   method: ["GET", "POST"],
   cache: 300,
   params: {
@@ -30,52 +61,35 @@ export default {
     limit: {
       type: "number",
       required: false,
-      description: "Jumlah hasil maksimal (default: 10)"
+      description: "Jumlah hasil (default: 20, max: 50)"
     }
   },
   execute: async (req) => {
     const query = req.query.query || req.body?.query;
-    const limit = Math.min(parseInt(req.query.limit || req.body?.limit || 10), 20);
+    const limit = Math.min(parseInt(req.query.limit || req.body?.limit || 20), 50);
 
-    if (!query) {
-      throw new Error("Parameter 'query' wajib diisi");
-    }
+    if (!query) throw new Error("Parameter 'query' wajib diisi");
 
     const startTime = Date.now();
-    const results = [];
 
-    // Search Pinterest
-    const searchData = await Pinterest.searchPins(query, limit);
+    const { data } = await axios.get(buildSearchUrl(query), {
+      headers: HEADERS,
+      timeout: 20000
+    });
 
-    if (!searchData || searchData.length === 0) {
+    if (data?.resource_response?.status !== "success") {
+      throw new Error(
+        data?.resource_response?.error?.message ||
+          "Pinterest menolak request, coba lagi nanti"
+      );
+    }
+
+    const results = parseResults(data, limit);
+    const elapsed = `${((Date.now() - startTime) / 1000).toFixed(2)}s`;
+
+    if (results.length === 0) {
       throw new Error("Tidak ada hasil ditemukan untuk kata kunci tersebut");
     }
-
-    // Ambil caption untuk setiap pin (opsional, tapi butuh request tambahan)
-    for (const pin of searchData) {
-      const pinId = extractPinId(pin.link);
-      let description = pin.description || null;
-
-      // Kalau caption belum ada, coba ambil detail pin
-      if (!description && pinId) {
-        try {
-          const detail = await Pinterest.getPins(pinId);
-          description = detail.description || null;
-        } catch {
-          // skip kalau gagal
-        }
-      }
-
-      results.push({
-        pin_id: pinId,
-        title: pin.title || null,
-        description,
-        image: pin.image || null,
-        link: pin.link || null
-      });
-    }
-
-    const elapsed = `${((Date.now() - startTime) / 1000).toFixed(2)}s`;
 
     return {
       query,
