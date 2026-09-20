@@ -1,6 +1,7 @@
 import axios from "axios";
 
 const FONT_FAMILY = '"Segoe UI", "Helvetica Neue", Arial, sans-serif';
+const DEFAULT_TEMPLATE = "https://cdn.zass.in/Ve8lvjKtSl.jpg";
 
 const toBuffer = async (src) => {
   if (!src) throw new Error("Sumber gambar wajib diisi");
@@ -33,7 +34,7 @@ const generateCallScreen = async (config) => {
   const { createCanvas, loadImage } = canvasImport.default || canvasImport;
 
   const {
-    templateUrl,
+    templateUrl = DEFAULT_TEMPLATE,
     profileUrl,
     name = "Unknown",
     duration = "00:00:00",
@@ -201,7 +202,6 @@ const generateCallScreen = async (config) => {
   });
 
   let pipeline = sharp(canvasBuffer, { failOn: "none" }).withMetadata(false);
-
   pipeline = pipeline.sharpen({ sigma: 0.6, m1: 0.5, m2: 0.5 });
 
   if (outputFormat === "png") {
@@ -245,15 +245,10 @@ const uploadToTelegraph = async (buffer) => {
 export default {
   name: "Call Screen Generator",
   category: "tools",
-  description: "Generate gambar fake call screen dari template + foto profil",
+  description: "Generate gambar fake call screen. Cukup kirim profileUrl, template sudah otomatis.",
   method: ["GET", "POST"],
   cache: 0,
   params: {
-    templateUrl: {
-      type: "string",
-      required: true,
-      description: "URL gambar template call screen"
-    },
     profileUrl: {
       type: "string",
       required: true,
@@ -293,8 +288,9 @@ export default {
   execute: async (req) => {
     const p = { ...req.query, ...req.body };
 
-    if (!p.templateUrl) throw new Error("Parameter 'templateUrl' wajib diisi");
-    if (!p.profileUrl) throw new Error("Parameter 'profileUrl' wajib diisi");
+    if (!p.profileUrl) {
+      throw new Error("Parameter 'profileUrl' wajib diisi");
+    }
 
     const outputFormat = ["jpeg", "jpg", "png", "webp"].includes(
       (p.outputFormat || "jpeg").toLowerCase()
@@ -308,7 +304,7 @@ export default {
     const startTime = Date.now();
 
     const buffer = await generateCallScreen({
-      templateUrl: p.templateUrl,
+      templateUrl: DEFAULT_TEMPLATE,
       profileUrl: p.profileUrl,
       name: p.name || "Unknown",
       duration: p.duration || "00:00:00",
