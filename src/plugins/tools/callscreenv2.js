@@ -1,7 +1,22 @@
 import axios from "axios";
-import { createCanvas, loadImage } from "@napi-rs/canvas";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { createCanvas, loadImage, GlobalFonts } from "@napi-rs/canvas";
 
-const FONT_FAMILY = '"Segoe UI", "Helvetica Neue", Arial, sans-serif';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+GlobalFonts.registerFromPath(
+  path.join(__dirname, "../../media/fonts/Roboto-Bold.ttf"),
+  "Roboto Bold"
+);
+GlobalFonts.registerFromPath(
+  path.join(__dirname, "../../media/fonts/Roboto-Regular.ttf"),
+  "Roboto"
+);
+
+const FONT_REGULAR = "Roboto";
+const FONT_BOLD = "Roboto Bold";
+
 const DEFAULT_TEMPLATE = "https://cdn.zass.in/Ve8lvjKtSl.jpg";
 
 const MIME_MAP = {
@@ -33,6 +48,17 @@ const toBuffer = async (src) => {
   throw new Error("Format sumber gambar tidak didukung");
 };
 
+const fitFontSize = (ctx, text, maxWidth, startSize, fontFamily) => {
+  let size = startSize;
+  while (size > 10) {
+    ctx.font = `${size}px ${fontFamily}`;
+    const width = ctx.measureText(text).width;
+    if (width <= maxWidth) return size;
+    size -= 2;
+  }
+  return 10;
+};
+
 const generateCallScreen = async (config) => {
   const {
     templateUrl = DEFAULT_TEMPLATE,
@@ -60,6 +86,8 @@ const generateCallScreen = async (config) => {
 
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext("2d");
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
 
   ctx.drawImage(templateImg, 0, 0, width, height);
 
@@ -72,6 +100,8 @@ const generateCallScreen = async (config) => {
 
   const profileCanvas = createCanvas(avatarSize, avatarSize);
   const profileCtx = profileCanvas.getContext("2d");
+  profileCtx.imageSmoothingEnabled = true;
+  profileCtx.imageSmoothingQuality = "high";
 
   const srcW = profileImgRaw.width;
   const srcH = profileImgRaw.height;
@@ -116,9 +146,10 @@ const generateCallScreen = async (config) => {
   ctx.stroke();
   ctx.restore();
 
-  const drawTextWithShadow = (text, x, y, options = {}) => {
+  const drawText = (text, x, y, options = {}) => {
     const {
-      font = `${Math.round(24 * scale)}px ${FONT_FAMILY}`,
+      fontFamily = FONT_REGULAR,
+      fontSize = Math.round(24 * scale),
       fillStyle = "#FFFFFF",
       textAlign = "center",
       textBaseline = "top",
@@ -130,7 +161,7 @@ const generateCallScreen = async (config) => {
     } = options;
 
     ctx.save();
-    ctx.font = font;
+    ctx.font = `${fontSize}px ${fontFamily}`;
     ctx.fillStyle = fillStyle;
     ctx.textAlign = textAlign;
     ctx.textBaseline = textBaseline;
@@ -149,18 +180,27 @@ const generateCallScreen = async (config) => {
   const durationFontSize = Math.round(width * 0.020);
   const statusFontSize = Math.round(width * 0.018);
   const nameY = Math.round(height * 0.040);
-  const durationY = nameY + Math.round(nameFontSize * 1.35);
-  const statusY = durationY + Math.round(durationFontSize * 1.4);
   const maxTextWidth = Math.round(width * 0.86);
 
-  drawTextWithShadow(name, width / 2, nameY, {
-    font: `700 ${nameFontSize}px ${FONT_FAMILY}`,
+  const finalNameSize = fitFontSize(ctx, name, maxTextWidth, nameFontSize, FONT_BOLD);
+  const finalDurationSize = fitFontSize(ctx, duration, maxTextWidth, durationFontSize, FONT_REGULAR);
+  const finalStatusSize = status
+    ? fitFontSize(ctx, status, maxTextWidth, statusFontSize, FONT_REGULAR)
+    : statusFontSize;
+
+  const durationY = nameY + Math.round(finalNameSize * 1.35);
+  const statusY = durationY + Math.round(finalDurationSize * 1.4);
+
+  drawText(name, width / 2, nameY, {
+    fontFamily: FONT_BOLD,
+    fontSize: finalNameSize,
     fillStyle: "#FFFFFF",
     maxWidth: maxTextWidth
   });
 
-  drawTextWithShadow(duration, width / 2, durationY, {
-    font: `400 ${durationFontSize}px ${FONT_FAMILY}`,
+  drawText(duration, width / 2, durationY, {
+    fontFamily: FONT_REGULAR,
+    fontSize: finalDurationSize,
     fillStyle: "#C8C8C8",
     shadowColor: "rgba(0, 0, 0, 0.6)",
     shadowBlur: Math.round(6 * scale),
@@ -169,8 +209,9 @@ const generateCallScreen = async (config) => {
   });
 
   if (status) {
-    drawTextWithShadow(status, width / 2, statusY, {
-      font: `400 ${statusFontSize}px ${FONT_FAMILY}`,
+    drawText(status, width / 2, statusY, {
+      fontFamily: FONT_REGULAR,
+      fontSize: finalStatusSize,
       fillStyle: "#9A9A9A",
       shadowColor: "rgba(0, 0, 0, 0.5)",
       shadowBlur: Math.round(5 * scale),
@@ -189,7 +230,7 @@ const generateCallScreen = async (config) => {
 export default {
   name: "Call Screen Generator",
   category: "tools",
-  description: "Generate gambar fake call screen, hasil langsung ditampilkan sebagai gambar",
+  description: "Generate gambar fake call screen dari template + foto profil. Hasil langsung berupa gambar.",
   method: ["GET", "POST"],
   cache: 0,
   params: {
@@ -227,6 +268,11 @@ export default {
       type: "boolean",
       required: false,
       description: "Set true untuk auto-download file (default: false)"
+    },
+    json: {
+      type: "boolean",
+      required: false,
+      description: "Set true untuk return JSON base64 (default: false, return gambar)"
     }
   },
   execute: async (req, res) => {
@@ -249,6 +295,7 @@ export default {
 
     const quality = Math.min(Math.max(parseInt(p.quality) || 95, 1), 100);
     const isDownload = String(p.download) === "true";
+    const asJson = String(p.json) === "true";
 
     try {
       const buffer = await generateCallScreen({
@@ -262,6 +309,22 @@ export default {
       });
 
       const info = MIME_MAP[outputFormat] || MIME_MAP.jpeg;
+
+      if (asJson) {
+        return {
+          name: p.name || "Unknown",
+          duration: p.duration || "00:00:00",
+          status: p.status || null,
+          format: outputFormat,
+          quality,
+          size: buffer.length,
+          size_formatted: `${(buffer.length / 1024).toFixed(2)} KB`,
+          mime: info.mime,
+          base64: buffer.toString("base64"),
+          dataUri: `data:${info.mime};base64,${buffer.toString("base64")}`
+        };
+      }
+
       const filename = `callscreen-${Date.now()}.${info.ext}`;
 
       res.setHeader("Content-Type", info.mime);
@@ -269,7 +332,9 @@ export default {
       res.setHeader("Cache-Control", "no-store");
       res.setHeader(
         "Content-Disposition",
-        isDownload ? `attachment; filename="${filename}"` : `inline; filename="${filename}"`
+        isDownload
+          ? `attachment; filename="${filename}"`
+          : `inline; filename="${filename}"`
       );
 
       res.end(buffer);
