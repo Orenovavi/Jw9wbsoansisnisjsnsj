@@ -245,7 +245,7 @@ const uploadToTelegraph = async (buffer) => {
 export default {
   name: "Call Screen Generator",
   category: "tools",
-  description: "Generate gambar fake call screen. Cukup kirim profileUrl, template sudah otomatis.",
+  description: "Generate gambar fake call screen, hasil otomatis di-upload ke Telegraph",
   method: ["GET", "POST"],
   cache: 0,
   params: {
@@ -278,11 +278,6 @@ export default {
       type: "number",
       required: false,
       description: "Kualitas output 1-100 (default: 95)"
-    },
-    upload: {
-      type: "boolean",
-      required: false,
-      description: "Upload hasil ke Telegraph dan return URL (default: false)"
     }
   },
   execute: async (req) => {
@@ -299,7 +294,6 @@ export default {
       : "jpeg";
 
     const quality = Math.min(Math.max(parseInt(p.quality) || 95, 1), 100);
-    const shouldUpload = String(p.upload) === "true";
 
     const startTime = Date.now();
 
@@ -313,12 +307,8 @@ export default {
       quality
     });
 
+    const url = await uploadToTelegraph(buffer);
     const elapsed = `${((Date.now() - startTime) / 1000).toFixed(2)}s`;
-
-    let resultUrl = null;
-    if (shouldUpload) {
-      resultUrl = await uploadToTelegraph(buffer);
-    }
 
     return {
       name: p.name || "Unknown",
@@ -328,8 +318,7 @@ export default {
       quality,
       size: buffer.length,
       size_formatted: `${(buffer.length / 1024).toFixed(2)} KB`,
-      url: resultUrl,
-      base64: shouldUpload ? null : buffer.toString("base64"),
+      url,
       process_time: elapsed
     };
   }
