@@ -1,205 +1,210 @@
 import axios from "axios";
-import * as cheerio from "cheerio";
+import { getLyrics } from "@fantox01/lyrics-scraper";
 
-const BASE_URL = "https://genius.com";
+const LRCLIB_API = "https://lrclib.net/api";
+const USER_AGENT = "JustPutu-Lyrics/1.0 (https://github.com/justputu)";
 const TIMEOUT = 20000;
+const MAX_RESULTS = 5;
 
-const HEADERS = {
-  "User-Agent":
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-  Accept:
-    "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-  "Accept-Language": "id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7",
-  "Accept-Encoding": "gzip, deflate, br",
+const isString = (v) => typeof v === "string" && v.length > 0;
+
+const cleanQuery = (q) => String(q || "").trim().replace(/\s+/g, " ");
+
+const parseQuery = (query) => {
+  const clean = cleanQuery(query);
+
+  const separators = [" - ", " – ", " — ", " by "];
+  for (const sep of separators) {
+    const parts = clean.split(sep);
+    if (parts.length === 2) {
+      return {
+        title: parts[0].trim(),
+        artist: parts[1].trim(),
+        raw: clean,
+      };
+    }
+  }
+
+  return { title: clean, artist: null, raw: clean };
 };
 
-const isValidLyricsUrl = (url) => {
-  if (!url) return false;
-  return /\.com\/.+lyrics/.test(url);
-};
+const lrclibHeaders = () => ({
+  "User-Agent": USER_AGENT,
+  Accept: "application/json",
+});
 
-const scrapeLyrics = async (url) => {
-  const response = await axios.get(url, {
+const lrclibSearch = async (params) => {
+  const { data } = await axios.get(`${LRCLIB_API}/search`, {
+    params,
+    headers: lrclibHeaders(),
     timeout: TIMEOUT,
-    headers: HEADERS,
-    validateStatus: (status) => status < 500,
+    validateStatus: (s) => s < 600,
   });
 
-  if (response.status >= 400) {
-    throw new Error(`Gagal akses halaman: HTTP ${response.status}`);
-  }
-
-  const $ = cheerio.load(response.data);
-
-  const ogTitle = $('meta[property="og:title"]').attr("content") || "";
-  const titleMatch = ogTitle.match(/–\s*(.+)/);
-  const artistMatch = ogTitle.match(/^(.+?)(?:\s*–|$)/);
-
-  let title = titleMatch ? titleMatch[1].trim() : $("h1").first().text().trim();
-  let artist = artistMatch ? artistMatch[1].trim() : null;
-
-  title = title.replace(/Lyrics/gi, "").trim();
-  if (artist) artist = artist.replace(/Lyrics/gi, "").trim();
-
-  const lyricsContainers = [
-    "div[data-lyrics-container='true']",
-    "div.lyrics",
-    "div[class*='Lyrics__Container']",
-  ];
-
-  let lyricsParts = [];
-
-  for (const container of lyricsContainers) {
-    $(container).each((i, el) => {
-      const text = $(el)
-        .html()
-        .replace(/<br\s*\/?>/g, "\n")
-        .replace(/<[^>]+>/g, "")
-        .replace(/&amp;/g, "&")
-        .replace(/&quot;/g, '"')
-        .replace(/&#x27;/g, "'")
-        .replace(/&lt;/g, "<")
-        .replace(/&gt;/g, ">")
-        .trim();
-
-      if (text) lyricsParts.push(text);
-    });
-
-    if (lyricsParts.length > 0) break;
-  }
-
-  const lyrics = lyricsParts
-    .join("\n\n")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-
-  if (!lyrics) {
-    throw new Error("Lirik tidak ditemukan di halaman ini");
-  }
-
-  return {
-    title,
-    artist,
-    lyrics,
-  };
+  return Array.isArray(data) ? data : [];
 };
 
-const searchLyrics = async (query) => {
-  const searchUrl = `${BASE_URL}/api/search/song?q=${encodeURIComponent(query)}`;
-
-  const response = await axios.get(searchUrl, {
+const lrclibGet = async (params) => {
+  const { data, status } = await axios.get(`${LRCLIB_API}/get`, {
+    params,
+    headers: lrclibHeaders(),
     timeout: TIMEOUT,
-    headers: {
-      "User-Agent": HEADERS["User-Agent"],
-      Accept: "application/json",
-    },
-    validateStatus: (status) => status < 500,
+    validateStatus: () => true,
   });
 
-  if (response.status >= 400) {
-    throw new Error(`Pencarian gagal: HTTP ${response.status}`);
+  if (status === 404) return null;
+  if (status >= 400) return null;
+
+  return data;
+};
+
+const findLrclib = async (parsed) => {
+  const attempts = [
+    { q: parsed.raw },
+    { track_name: parsed.title, artist_name: parsed.artist },
+    { track_name: parsed.title },
+  ].filter((p) => Object.values(p).every(isString));
+
+  let candidates = [];
+
+  for (const params of attempts) {
+    try {
+      const results = await lrclibSearch(params);
+      if (results.length > 0) {
+        candidates = results;
+        break;
+      }
+    } catch {
+      continue;
+    }
   }
 
-  const songs = response.data?.response?.sections?.[0]?.hits || [];
+  if (candidates.length === 0) return null;
 
-  return songs.map((hit) => ({
-    title: hit.result?.title || null,
-    artist: hit.result?.artist_names || null,
-    url: hit.result?.url || null,
-    thumbnail: hit.result?.song_art_image_thumbnail_url || null,
-    release_date: hit.result?.release_date_for_display || null,
-  }));
+  const best =
+    candidates.find((c) => !c.instrumental) || candidates[0];
+
+  const full = await lrclibGet({
+    track_name: best.trackName,
+    artist_name: best.artistName,
+    album_name: best.albumName || undefined,
+    duration: best.duration || undefined,
+  });
+
+  return full || best;
 };
+
+const findGenius = async (parsed) => {
+  try {
+    const data = await getLyrics(parsed.raw);
+    if (data?.status !== 200) return null;
+    return data;
+  } catch {
+    return null;
+  }
+};
+
+const normalizeLrclib = (data) => ({
+  source: "lrclib",
+  title: data.trackName || data.name,
+  artist: data.artistName,
+  album: data.albumName || null,
+  duration: data.duration || null,
+  instrumental: Boolean(data.instrumental),
+  lyrics: data.plainLyrics || null,
+  synced_lyrics: data.syncedLyrics || null,
+  thumbnail: null,
+  release_date: null,
+});
+
+const normalizeGenius = (data) => ({
+  source: "genius",
+  title: data.album?.split(" by ")?.[0] || null,
+  artist: data.artist || null,
+  album: data.album || null,
+  duration: null,
+  instrumental: false,
+  lyrics: data.lyrics || null,
+  synced_lyrics: null,
+  thumbnail: data.thumbnail || null,
+  release_date: data.release_date || null,
+  url: data.url || null,
+});
 
 export default {
   name: "Lyrics Finder",
   category: "search",
-  description: "Cari dan ambil lirik lagu dari berbagai sumber",
+  description: "Cari lirik lagu berdasarkan judul (multi-source: LRCLIB + Genius)",
   method: ["GET", "POST"],
-  cache: 600,
+  cache: 300,
   params: {
-    url: {
-      type: "string",
-      required: false,
-      description: "URL halaman lirik (wajib jika mode=lyrics)",
-    },
     query: {
       type: "string",
-      required: false,
-      description: "Kata kunci pencarian (wajib jika mode=search)",
+      required: true,
+      description: "Judul lagu. Format: 'Shape of You' atau 'Ed Sheeran - Shape of You'",
     },
-    mode: {
+    source: {
       type: "string",
       required: false,
-      description:
-        "Mode: 'lyrics' (scrape dari URL) atau 'search' (cari lagu). Default: auto",
+      description: "Paksa source: 'lrclib' atau 'genius'. Default: auto",
     },
-    limit: {
-      type: "number",
+    include_synced: {
+      type: "boolean",
       required: false,
-      description: "Jumlah hasil pencarian (default: 10)",
+      description: "Sertakan synced lyrics (.lrc) kalau ada (default: true)",
     },
   },
   execute: async (req) => {
-    const url = req.query.url || req.body?.url;
-    const query = req.query.query || req.body?.query;
-    const mode = (req.query.mode || req.body?.mode || "").toLowerCase();
-    const limit = Math.min(
-      Math.max(parseInt(req.query.limit || req.body?.limit || 10), 1),
-      30
-    );
+    const rawQuery = req.query.query || req.body?.query;
+    const forceSource = (req.query.source || req.body?.source || "").toLowerCase();
+    const includeSynced =
+      String(req.query.include_synced ?? req.body?.include_synced ?? "true") ===
+      "true";
 
-    if (!url && !query) {
-      throw new Error("Parameter 'url' atau 'query' wajib diisi");
+    if (!rawQuery) {
+      throw new Error("Parameter 'query' wajib diisi");
     }
 
     const startTime = Date.now();
+    const parsed = parseQuery(rawQuery);
 
-    let actualMode = mode;
+    let result = null;
 
-    if (!actualMode) {
-      actualMode = url ? "lyrics" : "search";
-    }
-
-    if (actualMode === "lyrics") {
-      if (!url) throw new Error("Mode 'lyrics' butuh parameter 'url'");
-      if (!isValidLyricsUrl(url)) {
-        throw new Error(
-          "URL tidak valid. Harus dari domain lirik (format: .../xxx-lyrics)"
-        );
+    if (!forceSource || forceSource === "lrclib") {
+      result = await findLrclib(parsed);
+      if (result && !forceSource) {
+        result = normalizeLrclib(result);
       }
-
-      const result = await scrapeLyrics(url);
-      const elapsed = `${((Date.now() - startTime) / 1000).toFixed(2)}s`;
-
-      return {
-        mode: "lyrics",
-        url,
-        ...result,
-        lyrics_length: result.lyrics.length,
-        process_time: elapsed,
-      };
     }
 
-    if (actualMode === "search") {
-      if (!query) throw new Error("Mode 'search' butuh parameter 'query'");
-
-      const results = await searchLyrics(query);
-      const elapsed = `${((Date.now() - startTime) / 1000).toFixed(2)}s`;
-
-      if (!results.length) {
-        throw new Error(`Tidak ada hasil untuk: ${query}`);
+    if (!result && (!forceSource || forceSource === "genius")) {
+      const geniusData = await findGenius(parsed);
+      if (geniusData) {
+        result = normalizeGenius(geniusData);
       }
-
-      return {
-        mode: "search",
-        query,
-        total: results.length,
-        results: results.slice(0, limit),
-        process_time: elapsed,
-      };
     }
 
-    throw new Error("Mode tidak valid. Gunakan 'lyrics' atau 'search'");
+    if (!result) {
+      throw new Error(
+        `Lirik tidak ditemukan untuk: ${rawQuery}. Coba format 'Judul - Artis' atau ejaan berbeda.`
+      );
+    }
+
+    if (!includeSynced && result.synced_lyrics) {
+      delete result.synced_lyrics;
+    }
+
+    const elapsed = `${((Date.now() - startTime) / 1000).toFixed(2)}s`;
+
+    return {
+      query: rawQuery,
+      parsed: {
+        title: parsed.title,
+        artist: parsed.artist,
+      },
+      ...result,
+      lyrics_length: result.lyrics?.length || 0,
+      process_time: elapsed,
+    };
   },
 };
