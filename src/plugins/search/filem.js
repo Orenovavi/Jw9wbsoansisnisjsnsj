@@ -4,13 +4,6 @@ const BASE = "https://zaammoviesnr.netlify.app";
 const API = `${BASE}/.netlify/functions/zaam-movies`;
 const TIMEOUT = 30000;
 
-const HEADERS = {
-  "User-Agent":
-    "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/124.0.0.0 Mobile Safari/537.36",
-  Accept: "application/json, text/plain, */*",
-  Referer: `${BASE}/`,
-};
-
 const VALID_ACTIONS = ["latest", "upcoming", "top_rated", "popular", "search"];
 
 const isString = (v) => typeof v === "string" && v.length > 0;
@@ -53,23 +46,21 @@ const extractList = (payload) => {
 const fetchAction = async (action, params = {}) => {
   const res = await axios.get(API, {
     params: { action, ...params },
-    headers: HEADERS,
     timeout: TIMEOUT,
     validateStatus: () => true,
   });
 
   if (res.status !== 200) {
-    throw new Error(`HTTP ${res.status}`);
+    throw new Error(`HTTP ${res.status}: ${JSON.stringify(res.data).slice(0, 200)}`);
   }
 
-  const data = res.data;
-  const items = extractList(data);
+  const items = extractList(res.data);
 
   if (items.length === 0) {
     throw new Error(`Tidak ada hasil untuk action: ${action}`);
   }
 
-  return { items, raw: data };
+  return items;
 };
 
 export default {
@@ -111,7 +102,7 @@ export default {
     if (action === "search") params.q = q.trim();
     if (page) params.page = parseInt(page);
 
-    const { items } = await fetchAction(action, params);
+    const items = await fetchAction(action, params);
     const elapsed = `${((Date.now() - startTime) / 1000).toFixed(2)}s`;
 
     return {
