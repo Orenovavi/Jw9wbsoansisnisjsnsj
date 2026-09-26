@@ -21,6 +21,7 @@
     "form-data": "^4.0.1",
     "file-type": "^19.6.0",
     "yt-search": "^2.13.1",
-    "@napi-rs/canvas": "^0.1.65"
+    "@napi-rs/canvas": "^0.1.65",
+    "puppeteer": "^23.9.0"
   }
 }
