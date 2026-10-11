@@ -56,70 +56,75 @@ const setCache = (key, value) => {
 };
 
 // ============================================================
-// FETCH PINTEREST
+// REQUEST KE API DEZNCONE
 // ============================================================
-const fetchFemboy = async () => {
-  const queries = ["femboy", "femboy aesthetic", "femboy outfit", "femboy cute"];
-  const query = queries[Math.floor(Math.random() * queries.length)];
-
+const searchPinterest = async (query) => {
   const res = await axios.get(`${BASE_URL}/api/search/pinterestv2`, {
-    params: { query, limit: 20 },
+    params: { query },
     headers: {
       "User-Agent": UA,
-      Accept: "application/json",
+      Accept: "application/json, text/plain, */*",
+      Referer: `${BASE_URL}/`,
+      Origin: BASE_URL,
     },
     timeout: TIMEOUT,
     validateStatus: () => true,
   });
 
   if (res.status !== 200) {
-    throw new Error(`Pinterest API HTTP ${res.status}`);
+    throw new Error(`API HTTP ${res.status}`);
   }
 
   return res.data;
 };
 
-// Ekstrak semua URL gambar dari response
-const extractImages = (data) => {
-  const urls = new Set();
+// ============================================================
+// AMBIL URL GAMBAR DARI RESULT (struktur dezncone)
+// ============================================================
+const getImageUrls = (data) => {
+  // Format standar dezncone: { status, creator, result: [...] }
+  const list = data?.result || data?.data?.result || data?.results || data?.data || [];
 
-  const walk = (node) => {
-    if (!node) return;
+  if (!Array.isArray(list)) return [];
 
-    if (typeof node === "string") {
-      if (node.startsWith("http") && (node.includes("pinimg.com") || /\.(jpg|jpeg|png|webp|gif)/i.test(node))) {
-        urls.add(node);
+  const urls = [];
+
+  for (const item of list) {
+    // Kalau item berupa string URL langsung
+    if (typeof item === "string" && item.startsWith("http")) {
+      urls.push(item);
+      continue;
+    }
+
+    // Kalau item berupa object
+    if (item && typeof item === "object") {
+      const url =
+        item.image ||
+        item.image_url ||
+        item.url ||
+        item.src ||
+        item.original ||
+        item.origin ||
+        item.link ||
+        item.download_url ||
+        (Array.isArray(item.images) ? item.images[0] : null);
+
+      if (typeof url === "string" && url.startsWith("http")) {
+        urls.push(url);
       }
-      return;
-    }
 
-    if (Array.isArray(node)) {
-      for (const item of node) walk(item);
-      return;
-    }
-
-    if (typeof node === "object") {
-      for (const key of Object.keys(node)) {
-        const val = node[key];
-        if (
-          typeof val === "string" &&
-          val.startsWith("http") &&
-          (key.toLowerCase().includes("image") ||
-            key.toLowerCase().includes("url") ||
-            key.toLowerCase().includes("src") ||
-            key.toLowerCase().includes("thumb") ||
-            key.toLowerCase().includes("origin"))
-        ) {
-          urls.add(val);
-        } else {
-          walk(val);
+      // Kalau ada nested images
+      if (Array.isArray(item.images)) {
+        for (const img of item.images) {
+          if (typeof img === "string" && img.startsWith("http")) urls.push(img);
+          else if (img?.url) urls.push(img.url);
         }
       }
     }
-  };
+  }
 
-  walk(data);
-  return [...urls];
+  // Dedupe
+  return [...new Set(urls)];
 };
 
 // ============================================================
@@ -130,13 +135,13 @@ export default {
   category: "image",
   description: "Ambil gambar femboy random dari Pinterest.",
   method: ["GET"],
-  route: "/api/search/femboy",
+  route: "/api/Search/femboy",
   cache: 0,
   params: {
     userId: {
       type: "string",
       required: false,
-      description: "ID user untuk rate limit (opsional)",
+      description: "ID user untuk rate limit",
     },
   },
   execute: async (req) => {
@@ -147,7 +152,7 @@ export default {
       throw new Error(`Rate limit. Coba lagi dalam ${rate.resetIn} detik.`);
     }
 
-    const cacheKey = "femboy:random";
+    const cacheKey = "femboy:v2";
     const cached = getCache(cacheKey);
     if (cached) {
       return { ...cached, from_cache: true, remaining_quota: rate.remaining };
@@ -156,11 +161,19 @@ export default {
     const startTime = Date.now();
 
     try {
-      const raw = await fetchFemboy();
-      const images = extractImages(raw);
+      const data = await searchPinterest("femboy");
+
+      // Validasi response
+      if (!data) throw new Error("Response kosong dari API Pinterest");
+
+      if (data.status === false) {
+        throw new Error(`API error: ${data.message || data.msg || "unknown"}`);
+      }
+
+      const images = getImageUrls(data);
 
       if (images.length === 0) {
-        throw new Error("Tidak ada gambar ditemukan");
+        throw new Error("Tidak ada gambar di response Pinterest");
       }
 
       const picked = images[Math.floor(Math.random() * images.length)];
