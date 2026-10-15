@@ -1,26 +1,12 @@
-import axios from "axios";
-import fs from "fs";
-import path from "path";
-import { spawn } from "child_process";
+/**
+ * Pinterest Downloader REST API
+ * Author: Newputz
+ * Version: 4.0 (Video Fixed)
+ * 
+ * Fix: video null → multi field_set + VideoResource fallback + story_pin_data parser
+ */
 
-// ═══════════════════════════════════════════
-//  PLUGIN CONFIG
-// ═══════════════════════════════════════════
-const pluginConfig = {
-  name: "pindlv4",
-  alias: ["pinterestv4", "pinv4", "pindl4", "pin"],
-  category: "download",
-  description: "Download gambar/video Pinterest (v4 - internal scraper)",
-  usage: ".pindlv4 <url>",
-  example: ".pindlv4 https://pin.it/xxx",
-  isOwner: false,
-  isPremium: false,
-  isGroup: false,
-  isPrivate: false,
-  cooldown: 10,
-  energi: 1,
-  isEnabled: true,
-};
+import axios from "axios";
 
 // ═══════════════════════════════════════════
 //  CONSTANTS
@@ -30,6 +16,7 @@ const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
 const APP_VERSION = "c1e40b0";
 const OP_TIMEOUT = 15000;
 const SESSION_TTL = 30 * 60 * 1000;
+const FIELD_SETS = ["auth_web_main_pin", "detailed", "embed"];
 
 let session = { cookie: "", csrf: "", domain: DOMAINS[0], expires: 0 };
 
@@ -215,14 +202,30 @@ const resolveShort = async (url) => {
 };
 
 // ═══════════════════════════════════════════
-//  PARSER
+//  BUILD URLS
 // ═══════════════════════════════════════════
-const buildPinUrl = (domain, pinId) => {
-  const payload = { options: { id: pinId, field_set_key: "detailed" }, context: {} };
+const buildPinUrl = (domain, pinId, fieldSet = "auth_web_main_pin") => {
+  const payload = {
+    options: {
+      id: pinId,
+      field_set_key: fieldSet,
+      fetch_visual_search_objects: true,
+    },
+    context: {},
+  };
   const data = encodeURIComponent(JSON.stringify(payload));
   return `https://${domain}/resource/PinResource/get/?source_url=%2Fpin%2F${pinId}%2F&data=${data}`;
 };
 
+const buildVideoUrl = (domain, pinId) => {
+  const payload = { options: { pin_id: pinId }, context: {} };
+  const data = encodeURIComponent(JSON.stringify(payload));
+  return `https://${domain}/resource/VideoResource/get/?source_url=%2Fpin%2F${pinId}%2F&data=${data}`;
+};
+
+// ═══════════════════════════════════════════
+//  PICKERS
+// ═══════════════════════════════════════════
 const pickBestImage = (images) => {
   if (!images) return null;
   return (
@@ -236,11 +239,26 @@ const pickBestImage = (images) => {
 };
 
 const pickBestVideo = (videos) => {
-  if (!videos?.video_list) return { mp4: null, hls: null, needsConversion: false };
+  if (!videos?.video_list) return { mp4: null, hls: null, needsConversion: false, keys: [] };
 
   const list = videos.video_list;
-  const mp4 = list.V_720P?.url || list.V_480P?.url || list.V_360P?.url || list.V_240P?.url || null;
-  const hls = list.V_HLSV4?.url || list.V_HLSV3?.url || null;
+  const keys = Object.keys(list);
+
+  const mp4 =
+    list.V_720P?.url ||
+    list.V_540P?.url ||
+    list.V_480P?.url ||
+    list.V_360P?.url ||
+    list.V_240P?.url ||
+    null;
+
+  const hls =
+    list.V_HLSV4?.url ||
+    list.V_HLSV3_MOBILE?.url ||
+    list.V_HLSV3?.url ||
+    list.V_HLSV2?.url ||
+    list.V_HLSV1?.url ||
+    null;
 
   const safeMp4 = mp4 && !isHls(mp4) ? mp4 : null;
   const safeHls = hls && isHls(hls) ? hls : null;
@@ -249,18 +267,47 @@ const pickBestVideo = (videos) => {
     mp4: safeMp4,
     hls: safeHls,
     needsConversion: !safeMp4 && Boolean(safeHls),
+    keys,
   };
 };
 
+// ═══════════════════════════════════════════
+//  PARSE PIN
+// ═══════════════════════════════════════════
 const parsePin = (pin) => {
   if (!pin) return null;
-  const videoInfo = pickBestVideo(pin.videos);
+
+  let videoList = pin.videos?.video_list || null;
+
+  // ⚡ Fallback 1: story_pin_data (pin story/reel)
+  if (!videoList && pin.story_pin_data) {
+    const pages = pin.story_pin_data?.pages || [];
+    for (const page of pages) {
+      const block = (page.blocks || []).find((b) => b.video);
+      if (block?.video?.video_list) {
+        videoList = block.video.video_list;
+        break;
+      }
+    }
+  }
+
+  const videoInfo = pickBestVideo({ video_list: videoList });
   const imageUrl = pickBestImage(pin.images);
+
+  // Detect pin video dari berbagai sumber
+  const isVideo =
+    Boolean(videoInfo.mp4 || videoInfo.hls) ||
+    pin.is_video === true ||
+    pin.videos?.video_list !== undefined;
 
   return {
     pin_id: pin.id || null,
     title: extractText(pin.title) || extractText(pin.grid_title) || null,
-    description: extractText(pin.description) || extractText(pin.closeup_description) || null,
+    description:
+      extractText(pin.description) ||
+      extractText(pin.closeup_description) ||
+      extractText(pin.grid_description) ||
+      null,
     username: pin.pinner?.username || null,
     fullname: extractText(pin.pinner?.full_name) || null,
     board: pin.board?.name || null,
@@ -268,8 +315,9 @@ const parsePin = (pin) => {
     thumbnail: pin.images?.["236x"]?.url || null,
     video: videoInfo.mp4,
     video_hls: videoInfo.hls,
+    video_variants: videoInfo.keys,
     video_needs_conversion: videoInfo.needsConversion,
-    is_video: Boolean(videoInfo.mp4 || videoInfo.hls),
+    is_video: isVideo,
     domain: pin.domain || null,
     source_url: pin.link || null,
     saves: pin.repin_count || 0,
@@ -279,26 +327,58 @@ const parsePin = (pin) => {
   };
 };
 
+// ═══════════════════════════════════════════
+//  VIDEO RESOURCE FALLBACK
+// ═══════════════════════════════════════════
+async function fetchVideoResource(domain, pinId, s) {
+  try {
+    const res = await withTimeout(
+      axios.get(buildVideoUrl(domain, pinId), {
+        headers: buildHeaders({ ...s, domain }),
+        timeout: OP_TIMEOUT,
+        validateStatus: () => true,
+      }),
+    );
+
+    const vr = res.data?.resource_response?.data;
+    if (!vr) return null;
+
+    const videoList = vr.video_list || vr.videos?.video_list || null;
+    return videoList || null;
+  } catch {
+    return null;
+  }
+}
+
+// ═══════════════════════════════════════════
+//  DETECT ERROR
+// ═══════════════════════════════════════════
 const detectError = (data, httpStatus) => {
-  if (httpStatus === 403) return "Rate limit Pinterest. Tunggu 5-10 menit.";
+  if (httpStatus === 403) return "Rate limit Pinterest. Tunggu 5-10 menit lalu coba lagi.";
   if (httpStatus === 404) return "Pin tidak ditemukan atau sudah dihapus.";
   if (httpStatus === 429) return "Terlalu banyak request. Coba lagi nanti.";
+
   const err = data?.resource_response?.error;
   if (err?.message) return err.message;
+
   return "Pin tidak ditemukan atau sudah dihapus.";
 };
 
 // ═══════════════════════════════════════════
-//  MAIN SCRAPER
+//  CORE SCRAPER
 // ═══════════════════════════════════════════
 async function scrapePinterest(url) {
   if (!isValidPinterestUrl(url)) {
-    throw new Error("URL tidak valid. Harus pinterest.com/pin/<angka>/ atau pin.it/<kode>");
+    throw new Error("URL tidak valid. Harus dari pinterest.com/pin/<angka>/ atau pin.it/<kode>");
   }
 
+  const startTime = Date.now();
   const short = await resolveShort(url);
+
   if (!short.resolved) {
-    throw new Error("Gagal resolve shortlink pin.it. Coba copy URL lengkap dari browser.");
+    throw new Error(
+      "Gagal resolve shortlink pin.it. Coba buka link di browser, lalu copy URL lengkap dari address bar.",
+    );
   }
 
   const resolved = short.url;
@@ -307,187 +387,170 @@ async function scrapePinterest(url) {
 
   const s = await fetchSession();
   const triedDomains = [];
+  const triedFieldSets = [];
   let lastError = null;
 
   for (const domain of [s.domain, ...DOMAINS.filter((d) => d !== s.domain)]) {
     triedDomains.push(domain);
-    try {
-      const res = await withTimeout(
-        axios.get(buildPinUrl(domain, pinId), {
-          headers: buildHeaders({ ...s, domain }),
-          timeout: OP_TIMEOUT,
-          validateStatus: () => true,
-        }),
-      );
 
-      const data = res.data;
-      if (data?.resource_response?.status !== "success") {
-        lastError = detectError(data, res.status);
+    for (const fieldSet of FIELD_SETS) {
+      triedFieldSets.push(`${domain}/${fieldSet}`);
+
+      try {
+        const res = await withTimeout(
+          axios.get(buildPinUrl(domain, pinId, fieldSet), {
+            headers: buildHeaders({ ...s, domain }),
+            timeout: OP_TIMEOUT,
+            validateStatus: () => true,
+          }),
+        );
+
+        const data = res.data;
+        if (data?.resource_response?.status !== "success") {
+          lastError = detectError(data, res.status);
+          continue;
+        }
+
+        const rawPin = data.resource_response.data;
+        const pin = parsePin(rawPin);
+        if (!pin) {
+          lastError = "Gagal parsing data pin.";
+          continue;
+        }
+
+        // ⚡ Kalau is_video true tapi video & video_hls masih null → coba VideoResource
+        if (pin.is_video && !pin.video && !pin.video_hls) {
+          const videoList = await fetchVideoResource(domain, pinId, s);
+          if (videoList) {
+            const vInfo = pickBestVideo({ video_list: videoList });
+            pin.video = vInfo.mp4;
+            pin.video_hls = vInfo.hls;
+            pin.video_variants = vInfo.keys;
+            pin.video_needs_conversion = vInfo.needsConversion;
+          }
+        }
+
+        if (pin.video_needs_conversion) {
+          pin.video_note = "Video hanya tersedia HLS (.m3u8). Butuh FFmpeg untuk convert.";
+        }
+
+        const elapsed = `${((Date.now() - startTime) / 1000).toFixed(2)}s`;
+
+        return {
+          ...pin,
+          field_set_used: fieldSet,
+          original_url: url,
+          resolved_url: resolved,
+          was_shortlink: short.was_short,
+          short_code: short.shortCode || null,
+          domain_used: domain,
+          domains_tried: triedDomains,
+          field_sets_tried: triedFieldSets,
+          process_time: elapsed,
+        };
+      } catch (err) {
+        lastError = err.message;
         continue;
       }
-
-      const pin = parsePin(data.resource_response.data);
-      if (!pin) {
-        lastError = "Gagal parsing data pin.";
-        continue;
-      }
-
-      return {
-        ...pin,
-        original_url: url,
-        resolved_url: resolved,
-        was_shortlink: short.was_short,
-        short_code: short.shortCode || null,
-        domain_used: domain,
-        domains_tried: triedDomains,
-      };
-    } catch (err) {
-      lastError = err.message;
-      continue;
     }
   }
 
-  throw new Error(`Semua domain gagal: ${lastError || "Pinterest menolak request"}`);
-}
-
-// ═══════════════════════════════════════════
-//  FFMPEG HLS → MP4
-// ═══════════════════════════════════════════
-async function convertHlsToMp4(hlsUrl) {
-  const tempDir = path.join(process.cwd(), "temp");
-  if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
-
-  const outPath = path.join(tempDir, `pin_${Date.now()}.mp4`);
-
-  await new Promise((resolve, reject) => {
-    const ff = spawn("ffmpeg", [
-      "-y",
-      "-user_agent", UA,
-      "-headers", "Referer: https://www.pinterest.com/\r\n",
-      "-i", hlsUrl,
-      "-c", "copy",
-      "-bsf:a", "aac_adtstoasc",
-      outPath,
-    ]);
-    ff.stderr.on("data", () => {});
-    ff.on("close", (code) => (code === 0 ? resolve() : reject(new Error("ffmpeg gagal convert HLS"))));
-    ff.on("error", (err) => reject(err));
-  });
-
-  return outPath;
-}
-
-// ═══════════════════════════════════════════
-//  CAPTION
-// ═══════════════════════════════════════════
-function buildCaption(r) {
-  const desc = r.description
-    ? r.description.substring(0, 150) + (r.description.length > 150 ? "..." : "")
-    : "-";
-  return (
-    `📌 *${r.title || "Pinterest Media"}*\n` +
-    `📝 ${desc}\n\n` +
-    `👤 ${r.fullname || "-"} (@${r.username || "-"})\n` +
-    `📋 Board: ${r.board || "-"}\n` +
-    `💾 Saves: ${r.saves ?? 0} • 💬 ${r.comments ?? 0}\n` +
-    `🔗 ${r.url}`
+  throw new Error(
+    `Semua gagal (${triedDomains.join(", ")}): ${lastError || "Pinterest menolak request"}`,
   );
 }
 
 // ═══════════════════════════════════════════
-//  HANDLER
+//  PLUGIN EXPORT
 // ═══════════════════════════════════════════
-async function handler(m, { sock }) {
-  const url = m.text?.trim();
+export default {
+  name: "Pinterest Downloader",
+  category: "downloader",
+  description:
+    "Ambil detail pin Pinterest lengkap dengan caption, media URL, dan statistik. Support URL lengkap & shortlink pin.it. Fix video null via multi field_set + VideoResource fallback.",
+  method: ["GET", "POST"],
+  cache: 60,
+  params: {
+    url: {
+      type: "string",
+      required: true,
+      description: "URL Pinterest (pinterest.com/pin/... atau pin.it/...)",
+    },
+    type: {
+      type: "string",
+      required: false,
+      description: "Filter: video | image | all (default: all)",
+    },
+    direct: {
+      type: "boolean",
+      required: false,
+      description: "Kalau true → return { redirect: '<media_url>' }",
+    },
+    video_only: {
+      type: "boolean",
+      required: false,
+      description: "Kalau true → hanya return kalau ada video, kalau bukan video throw error",
+    },
+  },
 
-  if (!url) {
-    return m.reply(
-      `📌 *ᴘɪɴᴛᴇʀᴇsᴛ ᴅᴏᴡɴʟᴏᴀᴅ ᴠ4*\n\n` +
-        `> Download gambar/video dari Pinterest\n\n` +
-        `*ᴄᴏɴᴛᴏʜ:*\n` +
-        `> \`${m.prefix}${pluginConfig.name} https://pin.it/xxx\`\n` +
-        `> \`${m.prefix}${pluginConfig.name} https://pinterest.com/pin/xxx\``,
-    );
-  }
+  execute: async (req) => {
+    const url = req.query.url || req.body?.url;
+    const type = String(req.query.type || req.body?.type || "all").toLowerCase();
+    const direct = req.query.direct === "true" || req.body?.direct === true;
+    const videoOnly = req.query.video_only === "true" || req.body?.video_only === true;
 
-  if (!isValidPinterestUrl(url)) {
-    return m.reply("❌ URL tidak valid. Gunakan link Pinterest (pinterest.com/pin/... atau pin.it/...).");
-  }
-
-  m.react("🕕");
-
-  let hlsFile = null;
-
-  try {
-    const r = await scrapePinterest(url);
-    const caption = buildCaption(r);
-
-    // ── VIDEO ──
-    if (r.is_video) {
-      // 1. MP4 langsung
-      if (r.video) {
-        try {
-          const buf = await axios.get(r.video, {
-            responseType: "arraybuffer",
-            timeout: 90000,
-            headers: { "User-Agent": UA, Referer: "https://www.pinterest.com/" },
-          });
-          await sock.sendMedia(m.chat, Buffer.from(buf.data), caption, m, {
-            type: "video",
-            mimetype: "video/mp4",
-            fileName: `pinterest_${r.pin_id || Date.now()}.mp4`,
-            contextInfo: { forwardingScore: 99, isForwarded: true },
-          });
-        } catch {
-          // Fallback kirim URL langsung
-          await sock.sendMedia(m.chat, r.video, caption, m, {
-            type: "video",
-            mimetype: "video/mp4",
-            fileName: `pinterest_${r.pin_id || Date.now()}.mp4`,
-            contextInfo: { forwardingScore: 99, isForwarded: true },
-          });
-        }
-      }
-      // 2. HLS → convert pakai ffmpeg
-      else if (r.video_hls) {
-        try {
-          hlsFile = await convertHlsToMp4(r.video_hls);
-          await sock.sendMedia(m.chat, fs.readFileSync(hlsFile), caption, m, {
-            type: "video",
-            mimetype: "video/mp4",
-            fileName: `pinterest_${r.pin_id || Date.now()}.mp4`,
-            contextInfo: { forwardingScore: 99, isForwarded: true },
-          });
-        } catch (ffErr) {
-          // Fallback: kirim link HLS
-          await m.reply(
-            `⚠️ Gagal convert video ke MP4 (${ffErr.message}).\n\n🔗 Link HLS:\n${r.video_hls}`,
-          );
-        }
-      } else {
-        throw new Error("Video URL tidak ditemukan.");
-      }
-    }
-    // ── IMAGE ──
-    else if (r.image) {
-      await sock.sendMedia(m.chat, r.image, caption, m, {
-        type: "image",
-        contextInfo: { forwardingScore: 99, isForwarded: true },
-      });
-    } else {
-      throw new Error("Tidak ada media yang bisa di-download.");
+    if (!url) throw new Error("Parameter 'url' wajib diisi");
+    if (!isValidPinterestUrl(url)) {
+      throw new Error("URL tidak valid. Harus dari pinterest.com/pin/<angka>/ atau pin.it/<kode>");
     }
 
-    m.react("✅");
-  } catch (error) {
-    console.error("[PinDLv4] Error:", error);
-    m.react("☢");
-    m.reply(`❌ *Gagal download Pinterest*\n\n> ${error.message || "Unknown error"}`);
-  } finally {
-    if (hlsFile && fs.existsSync(hlsFile)) {
-      try { fs.unlinkSync(hlsFile); } catch {}
-    }
-  }
-}
+    const pin = await scrapePinterest(url);
 
-export { pluginConfig as config, handler };
+    // ⚡ Video only mode → throw kalau bukan video
+    if (videoOnly && !pin.is_video) {
+      throw new Error("Pin ini bukan video (tidak ada media video).");
+    }
+
+    // ⚡ Video only + video masih null → throw dengan info debug
+    if (videoOnly && pin.is_video && !pin.video && !pin.video_hls) {
+      throw new Error(
+        "Video terdeteksi tapi URL kosong. Variants tersedia: " +
+          (pin.video_variants?.join(", ") || "tidak ada"),
+      );
+    }
+
+    // ── Mode redirect ──
+    if (direct) {
+      let target = null;
+      if (type === "video") target = pin.video || pin.video_hls;
+      else if (type === "image") target = pin.image;
+      else target = pin.video || pin.video_hls || pin.image;
+
+      if (!target) throw new Error("Media tidak ditemukan");
+      return { redirect: target };
+    }
+
+    // ── Mode filter ──
+    if (type === "video") {
+      if (!pin.is_video) throw new Error("Pin ini bukan video");
+      return {
+        ...pin,
+        image: null,
+        thumbnail: null,
+      };
+    }
+
+    if (type === "image") {
+      if (pin.is_video) throw new Error("Pin ini bukan gambar");
+      return {
+        ...pin,
+        video: null,
+        video_hls: null,
+        video_variants: [],
+      };
+    }
+
+    // ── Mode default ──
+    return pin;
+  },
+};
