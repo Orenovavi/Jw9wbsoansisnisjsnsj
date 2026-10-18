@@ -1,0 +1,527 @@
+/* =========================================================
+   DenzcOne REST API Console — app.js
+   ========================================================= */
+
+/* ---------- State ---------- */
+let registry = {};
+let activeEndpoint = null;
+let currentCategory = 'all';
+let isTerminalTyping = false;
+let rawResponseText = '';
+const openFolders = new Set();
+
+/* ---------- Navigation ---------- */
+function smoothNavigate(targetView) {
+  const homeView = document.getElementById('view-home');
+  const docsView = document.getElementById('view-docs');
+
+  const current     = targetView === 'docs' ? homeView : docsView;
+  const destination = targetView === 'docs' ? docsView : homeView;
+
+  current.classList.remove('view-enter');
+  current.classList.add('view-leave');
+
+  setTimeout(() => {
+    current.classList.add('hidden');
+    destination.classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    setTimeout(() => {
+      destination.classList.remove('view-leave');
+      destination.classList.add('view-enter');
+    }, 50);
+  }, 200);
+}
+
+/* ---------- Toast ---------- */
+const notify = (icon, title) => {
+  Swal.fire({
+    icon,
+    title,
+    position: 'center',
+    showConfirmButton: false,
+    timer: 1600,
+    customClass: { popup: 'custom-swal-center' },
+    iconColor: icon === 'success' ? '#10B981' : '#FF7675'
+  });
+};
+
+/* ---------- JSON Highlight ---------- */
+const formatCodeHighlight = (data) => {
+  let json = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+  json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return json.replace(
+    /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
+    (match) => {
+      let cls = 'json-number';
+      if (/^"/.test(match)) {
+        cls = /:$/.test(match) ? 'json-key' : 'json-string';
+      } else if (/true|false/.test(match)) {
+        cls = 'json-boolean';
+      } else if (/null/.test(match)) {
+        cls = 'json-null';
+      }
+      return `<span class="${cls}">${match}</span>`;
+    }
+  );
+};
+
+/* ---------- Terminal Animation ---------- */
+const typeTerminalLine = (text, speed = 12) => {
+  return new Promise((resolve) => {
+    const typingEl     = document.getElementById('terminal-typing');
+    const terminalBody = document.getElementById('terminal-body');
+    let index = 0;
+    typingEl.textContent = '';
+
+    const interval = setInterval(() => {
+      if (index < text.length) {
+        typingEl.textContent += text.charAt(index);
+        index++;
+        terminalBody.scrollTop = terminalBody.scrollHeight;
+      } else {
+        clearInterval(interval);
+        setTimeout(resolve, 30);
+      }
+    }, speed);
+  });
+};
+
+const commitTerminalLine = (colorClass = 'text-white/60') => {
+  const typingEl     = document.getElementById('terminal-typing');
+  const contentEl    = document.getElementById('terminal-content');
+  const terminalBody = document.getElementById('terminal-body');
+
+  const lineDiv = document.createElement('div');
+  lineDiv.className = colorClass;
+  lineDiv.textContent = typingEl.textContent;
+  contentEl.appendChild(lineDiv);
+  typingEl.textContent = '';
+  terminalBody.scrollTop = terminalBody.scrollHeight;
+};
+
+const runConsoleBootSequence = async () => {
+  if (isTerminalTyping) return;
+  isTerminalTyping = true;
+
+  const contentEl = document.getElementById('terminal-content');
+  contentEl.innerHTML = '';
+
+  await typeTerminalLine('[ OK ] DenzcOne Engine Initialized', 7);
+  commitTerminalLine('text-neo-mint font-mono font-bold');
+
+  await typeTerminalLine('[ OK ] Synchronized Router Engine with Plugin Watcher', 7);
+  commitTerminalLine('text-neo-mint font-mono font-bold');
+
+  await typeTerminalLine('justputu@DenzcOne:~# denzcone-cli scan --active', 8);
+  commitTerminalLine('text-white font-bold');
+
+  const categories = Object.keys(registry);
+  let totalLoaded = 0;
+
+  for (const cat of categories) {
+    const list = registry[cat] || [];
+    for (const ep of list) {
+      totalLoaded++;
+      const method = (ep.method && ep.method[0]) || 'GET';
+      await typeTerminalLine(`[LOADED] ${method} ${ep.endpoint}`, 4);
+      commitTerminalLine('text-neo-violet font-mono');
+    }
+  }
+
+  await typeTerminalLine(
+    `[INFO] ${totalLoaded} endpoints active across ${categories.length} categories`,
+    7
+  );
+  commitTerminalLine('text-white font-bold');
+
+  await typeTerminalLine('justputu@DenzcOne:~# ready', 7);
+  commitTerminalLine('text-white/40');
+
+  isTerminalTyping = false;
+};
+
+async function rescanConsole() {
+  await fetchEndpoints();
+  await runConsoleBootSequence();
+  notify('success', 'Katalog endpoint berhasil dimuat ulang');
+}
+
+/* ---------- Fetch Endpoints ---------- */
+async function fetchEndpoints() {
+  try {
+    const res = await fetch(`/api/endpoints?_t=${Date.now()}`, {
+      cache: 'no-store',
+      headers: { Pragma: 'no-cache', 'Cache-Control': 'no-cache' }
+    });
+    const data = await res.json();
+
+    if (data.status && data.result) {
+      registry = data.result.endpoints || {};
+      document.getElementById('stat-total').textContent      = data.result.total || 0;
+      document.getElementById('stat-categories').textContent = Object.keys(registry).length;
+
+      buildCategoryTabs();
+      renderEndpoints();
+    }
+  } catch (err) {
+    document.getElementById('endpoint-container').innerHTML = `
+      <div class="text-center py-12 neo-card bg-neo-rose text-white text-xs font-mono font-bold">
+        Gagal memuat daftar endpoint dari server.
+      </div>
+    `;
+  }
+}
+
+/* ---------- Category Tabs ---------- */
+function buildCategoryTabs() {
+  const container = document.getElementById('category-tabs');
+  container.innerHTML = `
+    <button onclick="filterCategory('all')" class="neo-btn px-3.5 py-1.5 text-xs font-mono font-bold shrink-0 ${
+      currentCategory === 'all' ? 'bg-neo-violet text-white' : 'bg-white text-neo-dark'
+    }">
+      SEMUA
+    </button>
+  `;
+
+  Object.keys(registry).forEach((cat) => {
+    const btn = document.createElement('button');
+    btn.onclick = () => filterCategory(cat);
+    btn.className = `neo-btn px-3.5 py-1.5 text-xs font-mono font-bold uppercase shrink-0 ${
+      currentCategory === cat ? 'bg-neo-violet text-white' : 'bg-white text-neo-dark'
+    }`;
+    btn.textContent = cat;
+    container.appendChild(btn);
+  });
+}
+
+function filterCategory(cat) {
+  currentCategory = cat;
+  buildCategoryTabs();
+  renderEndpoints(document.getElementById('search-input').value.trim().toLowerCase());
+}
+
+/* ---------- Folder Toggle ---------- */
+function toggleFolder(cat) {
+  const content = document.getElementById(`folder-content-${cat}`);
+  const chevron = document.getElementById(`folder-chevron-${cat}`);
+  const icon    = document.getElementById(`folder-icon-${cat}`);
+
+  if (!content) return;
+
+  const isNowOpen = !openFolders.has(cat);
+
+  if (isNowOpen) {
+    openFolders.add(cat);
+    content.classList.add('open');
+    chevron.style.transform = 'rotate(180deg)';
+    icon.setAttribute('data-lucide', 'folder-open');
+  } else {
+    openFolders.delete(cat);
+    content.classList.remove('open');
+    chevron.style.transform = 'rotate(0deg)';
+    icon.setAttribute('data-lucide', 'folder');
+  }
+  lucide.createIcons();
+}
+
+/* ---------- Render Endpoints ---------- */
+function renderEndpoints(searchQuery = '') {
+  const container = document.getElementById('endpoint-container');
+  container.innerHTML = '';
+
+  const categories = Object.keys(registry);
+  let count = 0;
+
+  categories.forEach((cat) => {
+    if (currentCategory !== 'all' && currentCategory !== cat) return;
+
+    const endpoints = registry[cat].filter((ep) => {
+      if (!searchQuery) return true;
+      return (
+        ep.name.toLowerCase().includes(searchQuery) ||
+        ep.endpoint.toLowerCase().includes(searchQuery) ||
+        ep.description.toLowerCase().includes(searchQuery)
+      );
+    });
+
+    if (endpoints.length === 0) return;
+    count += endpoints.length;
+
+    if (currentCategory === 'all' && !searchQuery) {
+      const isOpen = openFolders.has(cat);
+      const folderBox = document.createElement('div');
+      folderBox.className = 'neo-card bg-white overflow-hidden';
+
+      folderBox.innerHTML = `
+        <div onclick="toggleFolder('${cat}')" class="p-4 flex items-center justify-between cursor-pointer bg-neo-bg/40 hover:bg-neo-bg transition-colors select-none border-b-2 border-neo-dark">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 bg-neo-violet text-white border-2 border-neo-dark rounded-xl flex items-center justify-center shrink-0 shadow-brutal-sm">
+              <i data-lucide="${isOpen ? 'folder-open' : 'folder'}" id="folder-icon-${cat}" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h3 class="text-xs font-heading font-black uppercase tracking-wider text-neo-dark">${cat}</h3>
+              <span class="text-[10px] font-mono font-bold text-neo-dark/60">${endpoints.length} ENDPOINTS</span>
+            </div>
+          </div>
+          <div class="w-7 h-7 bg-white border-2 border-neo-dark rounded-lg flex items-center justify-center text-neo-dark shadow-brutal-sm">
+            <i data-lucide="chevron-down" id="folder-chevron-${cat}" class="w-3.5 h-3.5 transition-transform duration-300" style="transform: ${isOpen ? 'rotate(180deg)' : 'rotate(0deg)'}"></i>
+          </div>
+        </div>
+        <div id="folder-content-${cat}" class="folder-content ${isOpen ? 'open' : ''}">
+          <div class="overflow-hidden">
+            <div class="p-4 grid grid-cols-1 gap-3" id="folder-grid-${cat}"></div>
+          </div>
+        </div>
+      `;
+
+      container.appendChild(folderBox);
+
+      const grid = document.getElementById(`folder-grid-${cat}`);
+      endpoints.forEach((ep) => grid.appendChild(createEndpointCard(ep)));
+    } else {
+      const block = document.createElement('div');
+      block.className = 'space-y-3';
+
+      block.innerHTML = `
+        <div class="flex items-center gap-2 pb-1 border-b-2 border-neo-dark">
+          <span class="w-3 h-3 bg-neo-violet border border-neo-dark rounded-sm"></span>
+          <h3 class="text-xs font-heading font-black uppercase tracking-wider text-neo-dark">${cat}</h3>
+          <span class="text-[10px] font-mono font-bold text-neo-dark/60">(${endpoints.length})</span>
+        </div>
+        <div class="grid grid-cols-1 gap-3" id="grid-${cat}"></div>
+      `;
+
+      container.appendChild(block);
+
+      const grid = document.getElementById(`grid-${cat}`);
+      endpoints.forEach((ep) => grid.appendChild(createEndpointCard(ep)));
+    }
+  });
+
+  if (count === 0) {
+    container.innerHTML = `
+      <div class="text-center py-16 neo-card bg-white text-xs font-mono font-bold">
+        Tidak ada endpoint yang cocok dengan pencarian.
+      </div>
+    `;
+  }
+
+  lucide.createIcons();
+}
+
+function createEndpointCard(ep) {
+  const card = document.createElement('div');
+  card.className = 'neo-card neo-card-hover bg-white p-4 cursor-pointer flex flex-col justify-between space-y-3';
+  card.onclick = () => openModal(ep);
+
+  const method = (ep.method && ep.method[0]) || 'GET';
+  const methodBadge = method === 'POST' ? 'bg-neo-blue text-white' : 'bg-neo-mint text-neo-dark';
+
+  card.innerHTML = `
+    <div>
+      <div class="flex items-center justify-between gap-2 mb-1.5">
+        <h4 class="text-xs font-heading font-black uppercase text-neo-dark">${ep.name}</h4>
+        <span class="px-2 py-0.5 text-[9px] font-mono font-black border-2 border-neo-dark rounded-md ${methodBadge}">${method}</span>
+      </div>
+      <p class="text-[11px] text-neo-dark/80 font-semibold leading-relaxed">${ep.description || 'Tanpa deskripsi tambahan.'}</p>
+    </div>
+    <div class="flex items-center justify-between pt-2.5 border-t-2 border-neo-dark/10 text-[11px] font-mono font-bold">
+      <span class="truncate max-w-[180px] sm:max-w-[260px] text-neo-violet">${ep.endpoint}</span>
+      <div class="flex items-center gap-1 text-neo-dark font-black">
+        <span>TEST</span>
+        <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+      </div>
+    </div>
+  `;
+  return card;
+}
+
+/* ---------- Modal ---------- */
+function openModal(ep) {
+  activeEndpoint = ep;
+  const modal    = document.getElementById('modal-sheet');
+  const backdrop = document.getElementById('modal-backdrop');
+
+  document.getElementById('modal-title').textContent = ep.name;
+  document.getElementById('modal-desc').textContent  = ep.description || '-';
+  document.getElementById('modal-path').textContent  = ep.endpoint;
+
+  const method = (ep.method && ep.method[0]) || 'GET';
+  document.getElementById('modal-badge-method').textContent = method;
+
+  const inputsContainer = document.getElementById('modal-inputs');
+  inputsContainer.innerHTML = '';
+
+  const params = ep.params || {};
+  const keys   = Object.keys(params);
+
+  if (keys.length === 0) {
+    inputsContainer.innerHTML = `
+      <div class="text-xs font-mono font-bold text-neo-dark/70 p-3 bg-neo-bg border-2 border-neo-dark rounded-xl">
+        Endpoint ini tidak memerlukan parameter input.
+      </div>
+    `;
+  } else {
+    keys.forEach((key) => {
+      const item       = params[key];
+      const isRequired = typeof item === 'object' ? item.required : false;
+      const desc       = typeof item === 'object' ? item.description : '';
+
+      const group = document.createElement('div');
+      group.className = 'space-y-1';
+      group.innerHTML = `
+        <div class="flex items-center justify-between text-xs font-mono font-bold gap-2">
+          <label class="text-neo-dark uppercase">${key} ${isRequired ? '<span class="text-neo-rose">*</span>' : ''}</label>
+          <span class="text-[10px] text-neo-dark/60 truncate">${desc}</span>
+        </div>
+        <input type="text" name="${key}" ${isRequired ? 'required' : ''} placeholder="Masukkan ${key}..." class="w-full neo-input px-3 py-2 text-xs font-mono font-bold bg-neo-bg focus:bg-white transition-colors" />
+      `;
+      inputsContainer.appendChild(group);
+    });
+  }
+
+  document.getElementById('modal-response-wrapper').classList.add('hidden');
+  document.body.style.overflow = 'hidden';
+
+  backdrop.classList.remove('opacity-0', 'pointer-events-none');
+  backdrop.classList.add('opacity-100');
+
+  modal.classList.add('active');
+  lucide.createIcons();
+}
+
+function closeModal() {
+  const modal    = document.getElementById('modal-sheet');
+  const backdrop = document.getElementById('modal-backdrop');
+
+  modal.classList.remove('active');
+  backdrop.classList.remove('opacity-100');
+  backdrop.classList.add('opacity-0', 'pointer-events-none');
+
+  document.body.style.overflow = '';
+  activeEndpoint = null;
+}
+
+/* ---------- Execute Request ---------- */
+async function executeRequest(e) {
+  e.preventDefault();
+  if (!activeEndpoint) return;
+
+  const submitBtn       = document.getElementById('btn-submit');
+  const submitText      = document.getElementById('btn-submit-text');
+  const submitIcon      = document.getElementById('btn-submit-icon');
+  const responseWrapper = document.getElementById('modal-response-wrapper');
+  const responseBody    = document.getElementById('modal-response-body');
+  const statusPill      = document.getElementById('modal-status-pill');
+  const timePill        = document.getElementById('modal-time-pill');
+
+  submitBtn.disabled = true;
+  submitBtn.classList.add('opacity-70');
+  submitText.textContent = 'Memproses...';
+  submitIcon.innerHTML   = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>';
+  lucide.createIcons();
+
+  const formData    = new FormData(e.target);
+  const queryParams = new URLSearchParams();
+  const bodyPayload = {};
+
+  for (const [key, val] of formData.entries()) {
+    if (val.trim()) {
+      queryParams.append(key, val.trim());
+      bodyPayload[key] = val.trim();
+    }
+  }
+
+  const method = (activeEndpoint.method && activeEndpoint.method[0]) || 'GET';
+  let url = activeEndpoint.endpoint;
+
+  const options = { method };
+
+  if (method === 'GET') {
+    const qs = queryParams.toString();
+    if (qs) url += `?${qs}`;
+  } else {
+    options.headers = { 'Content-Type': 'application/json' };
+    options.body    = JSON.stringify(bodyPayload);
+  }
+
+  const start = performance.now();
+
+  try {
+    const response = await fetch(url, options);
+    const duration = Math.round(performance.now() - start);
+    const json     = await response.json();
+
+    rawResponseText = JSON.stringify(json, null, 2);
+
+    statusPill.textContent = `${response.status} ${response.statusText || 'OK'}`;
+    statusPill.className   = response.ok
+      ? 'text-[10px] font-mono font-bold px-2 py-0.5 bg-neo-mint border-2 border-neo-dark rounded-md text-neo-dark'
+      : 'text-[10px] font-mono font-bold px-2 py-0.5 bg-neo-rose border-2 border-neo-dark rounded-md text-white';
+
+    timePill.textContent   = `${duration}ms`;
+    responseBody.innerHTML = formatCodeHighlight(json);
+    responseWrapper.classList.remove('hidden');
+
+    if (response.ok) notify('success', `Berhasil (${response.status})`);
+    else             notify('error', json.message || 'Request Gagal');
+  } catch (err) {
+    const duration = Math.round(performance.now() - start);
+    const errorObj = { status: false, message: err.message };
+    rawResponseText = JSON.stringify(errorObj, null, 2);
+
+    statusPill.textContent = 'Error';
+    statusPill.className   = 'text-[10px] font-mono font-bold px-2 py-0.5 bg-neo-rose border-2 border-neo-dark rounded-md text-white';
+    timePill.textContent   = `${duration}ms`;
+    responseBody.innerHTML = formatCodeHighlight(errorObj);
+    responseWrapper.classList.remove('hidden');
+
+    notify('error', err.message || 'Gagal mengeksekusi request');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.classList.remove('opacity-70');
+    submitText.textContent = 'Jalankan Request';
+    submitIcon.innerHTML   = '<i data-lucide="send" class="w-4 h-4"></i>';
+    lucide.createIcons();
+  }
+}
+
+/* ---------- Copy Helpers ---------- */
+function copyRoute() {
+  if (!activeEndpoint) return;
+  navigator.clipboard.writeText(window.location.origin + activeEndpoint.endpoint);
+  notify('success', 'Route disalin');
+}
+
+function copyResponse() {
+  if (rawResponseText) {
+    navigator.clipboard.writeText(rawResponseText);
+    notify('success', 'JSON disalin');
+  }
+}
+
+/* ---------- Latency ---------- */
+async function checkLatency() {
+  const bottomDisplay = document.getElementById('bottom-latency');
+  const start = performance.now();
+  try {
+    await fetch('/tools/ping');
+    const duration = Math.round(performance.now() - start);
+    bottomDisplay.textContent = `${duration}ms`;
+  } catch {
+    bottomDisplay.textContent = 'Offline';
+  }
+}
+
+/* ---------- Init ---------- */
+window.addEventListener('DOMContentLoaded', async () => {
+  lucide.createIcons();
+  await fetchEndpoints();
+  checkLatency();
+  await runConsoleBootSequence();
+
+  document.getElementById('search-input').addEventListener('input', (e) => {
+    renderEndpoints(e.target.value.trim().toLowerCase());
+  });
+});
