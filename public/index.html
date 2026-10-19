@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DenzcOne — Rest API</title>
+  
+  <meta name="description" content="Simple lightweight API base made by justputu's" />
+  <meta property="og:title" content="DenzcOne — Rest API" />
+  <meta property="og:description" content="Simple lightweight API base made by justputu's" />
+  <meta property="og:image" content="/media/DenzcOne.jpg" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="/media/DenzcOne.jpg" />
+  
+  <link rel="icon" type="image/jpeg" href="/media/DenzcOne.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            heading: ['"Outfit"', 'sans-serif'],
+            sans: ['"Inter"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            ink: {
+              950: '#07080F',
+              900: '#0C0E18',
+              800: '#12141F',
+              700: '#1A1D2E',
+              600: '#252836',
+              500: '#3A3F55',
+              400: '#6B728E',
+              300: '#9BA1B8',
+              200: '#C8CDDC',
+              100: '#E8EAF2',
+            },
+            accent: {
+              DEFAULT: '#8B5CF6',
+              soft: '#A78BFA',
+              glow: '#7C3AED',
+              cyan: '#22D3EE',
+              mint: '#34D399',
+              rose: '#FB7185',
+              amber: '#FBBF24',
+            }
+          },
+          boxShadow: {
+            'glow': '0 0 40px -8px rgba(139, 92, 246, 0.35)',
+            'glow-sm': '0 0 24px -6px rgba(139, 92, 246, 0.25)',
+            'card': '0 8px 32px -8px rgba(0,0,0,0.45)',
+            'card-hover': '0 16px 48px -12px rgba(0,0,0,0.55)',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * {
+      -webkit-tap-highlight-color: transparent;
+      outline: none;
+    }
+
+    body {
+      background: #07080F;
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(139, 92, 246, 0.18), transparent),
+        radial-gradient(ellipse 60% 40% at 100% 50%, rgba(34, 211, 238, 0.06), transparent),
+        radial-gradient(ellipse 50% 30% at 0% 80%, rgba(139, 92, 246, 0.08), transparent);
+      min-height: 100vh;
+    }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb {
+      background: #3A3F55;
+      border-radius: 99px;
+    }
+    ::-webkit-scrollbar-thumb:hover { background: #6B728E; }
+
+    .glass {
+      background: rgba(18, 20, 31, 0.7);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .glass-strong {
+      background: rgba(18, 20, 31, 0.85);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .btn {
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      border-radius: 12px;
+      font-weight: 600;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+      color: white;
+      box-shadow: 0 4px 20px -4px rgba(139, 92, 246, 0.5);
+    }
+    .btn-primary:hover {
+      box-shadow: 0 8px 28px -4px rgba(139, 92, 246, 0.6);
+    }
+
+    .btn-ghost {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: #C8CDDC;
+    }
+    .btn-ghost:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.12);
+      color: white;
+    }
+
+    .btn-accent {
+      background: rgba(251, 191, 36, 0.12);
+      border: 1px solid rgba(251, 191, 36, 0.25);
+      color: #FBBF24;
+    }
+    .btn-accent:hover {
+      background: rgba(251, 191, 36, 0.2);
+    }
+
+    .card {
+      background: rgba(18, 20, 31, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 20px;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .card-hover:hover {
+      border-color: rgba(139, 92, 246, 0.35);
+      box-shadow: 0 12px 40px -12px rgba(139, 92, 246, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .input-field {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      color: #E8EAF2;
+      transition: all 0.2s ease;
+    }
+    .input-field:focus {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(139, 92, 246, 0.5);
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+    }
+    .input-field::placeholder { color: #6B728E; }
+
+    .folder-content {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 300ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .folder-content.open { grid-template-rows: 1fr; }
+
+    .modal-sheet {
+      transform: translateY(100%);
+      transition: transform 360ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .modal-sheet.active { transform: translateY(0); }
+
+    .view-transition {
+      transition: opacity 260ms cubic-bezier(0.16, 1, 0.3, 1), transform 260ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .view-enter {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    .view-leave {
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+    }
+
+    .swal2-popup.custom-swal {
+      background: #12141F !important;
+      border: 1px solid rgba(255,255,255,0.1) !important;
+      border-radius: 20px !important;
+      padding: 1.5rem !important;
+      box-shadow: 0 24px 64px -12px rgba(0,0,0,0.6) !important;
+    }
+    .swal2-title {
+      font-size: 1rem !important;
+      font-weight: 700 !important;
+      font-family: "Outfit", sans-serif !important;
+      color: #E8EAF2 !important;
+    }
+
+    .json-key { color: #A78BFA; font-weight: 600; }
+    .json-string { color: #34D399; }
+    .json-number { color: #FBBF24; font-weight: 600; }
+    .json-boolean { color: #FB7185; font-weight: 600; }
+    .json-null { color: #6B728E; font-style: italic; }
+
+    .text-gradient {
+      background: linear-gradient(135deg, #A78BFA 0%, #22D3EE 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+    }
+
+    .fade-up {
+      animation: fadeUp 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .d1 { animation-delay: 0.04s; }
+    .d2 { animation-delay: 0.1s; }
+    .d3 { animation-delay: 0.16s; }
+    .d4 { animation-delay: 0.22s; }
+    .d5 { animation-delay: 0.28s; }
+
+    .method-get { background: rgba(52, 211, 153, 0.15); color: #34D399; border: 1px solid rgba(52, 211, 153, 0.25); }
+    .method-post { background: rgba(96, 165, 250, 0.15); color: #60A5FA; border: 1px solid rgba(96, 165, 250, 0.25); }
+    .method-put { background: rgba(251, 191, 36, 0.15); color: #FBBF24; border: 1px solid rgba(251, 191, 36, 0.25); }
+    .method-delete { background: rgba(251, 113, 133, 0.15); color: #FB7185; border: 1px solid rgba(251, 113, 133, 0.25); }
+  </style>
+</head>
+<body class="text-ink-100 min-h-screen flex flex-col font-sans antialiased selection:bg-accent selection:text-white relative pb-24 sm:pb-0">
+
+  <!-- Ambient orbs -->
+  <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+    <div class="orb w-[500px] h-[500px] bg-accent/20 -top-40 -left-40"></div>
+    <div class="orb w-[400px] h-[400px] bg-accent-cyan/10 bottom-0 right-0"></div>
+  </div>
+
+  <!-- HEADER -->
+  <header class="sticky top-0 z-40 glass-strong border-b border-white/5 px-4 sm:px-8 py-3.5">
+    <div class="max-w-4xl mx-auto flex items-center justify-between gap-4">
+      
+      <a href="#" onclick="smoothNavigate('home')" class="flex items-center gap-3 group">
+        <div class="relative">
+          <img src="/media/DenzcOne.jpg" alt="Logo" class="w-10 h-10 rounded-2xl object-cover ring-2 ring-accent/40 group-hover:ring-accent transition-all" />
+          <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-accent-mint rounded-full border-2 border-ink-900"></span>
+        </div>
+        <div class="flex flex-col">
+          <span class="font-heading font-bold text-lg tracking-tight text-white leading-none">DenzcOne</span>
+          <span class="font-mono text-[10px] text-ink-400 font-medium tracking-wider mt-0.5">BY JUSTPUTU'S</span>
+        </div>
+      </a>
+
+      <div class="hidden sm:flex items-center gap-2">
+        <button onclick="smoothNavigate('home')" class="btn btn-ghost px-4 py-2 text-xs font-medium flex items-center gap-2">
+          <i data-lucide="home" class="w-3.5 h-3.5"></i>
+          <span>Home</span>
+        </button>
+        <button onclick="smoothNavigate('docs')" class="btn btn-primary px-4 py-2 text-xs flex items-center gap-2">
+          <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
+          <span>Docs</span>
+        </button>
+        <a href="https://wa.me/628895307489" target="_blank" class="btn btn-accent px-4 py-2 text-xs flex items-center gap-2">
+          <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
+          <span>Contact</span>
+        </a>
+      </div>
+
+      <div class="sm:hidden">
+        <a href="https://github.com/justputu/DenzcOne" target="_blank" class="btn btn-ghost p-2.5 flex items-center justify-center">
+          <i data-lucide="github" class="w-4 h-4"></i>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="flex-1 max-w-3xl mx-auto w-full px-4 py-10 sm:py-14 relative z-10 space-y-8">
+    
+    <!-- HOME VIEW -->
+    <div id="view-home" class="view-transition view-enter space-y-8">
+      
+      <!-- Badge -->
+      <div class="flex justify-center fade-up">
+        <div class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-accent/10 border border-accent/20 text-accent-soft text-xs font-medium">
+          <span class="relative flex h-1.5 w-1.5">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-mint opacity-70"></span>
+            <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-accent-mint"></span>
+          </span>
+          DenzcOne REST API · v2.0 Stable
+        </div>
+      </div>
+
+      <!-- Hero -->
+      <div class="text-center space-y-5 fade-up d1">
+        <h1 class="font-heading font-extrabold text-4xl sm:text-5xl md:text-[3.5rem] tracking-tight leading-[1.1] text-white">
+          Build faster with<br/>
+          <span class="text-gradient">powerful APIs</span>
+        </h1>
+        <p class="text-ink-300 text-sm sm:text-base font-medium max-w-md mx-auto leading-relaxed">
+          Lightweight, stable, and ready for bots, web apps, and anything you ship.
+        </p>
+      </div>
+
+      <!-- CTA -->
+      <div class="fade-up d2">
+        <button onclick="smoothNavigate('docs')" class="w-full card card-hover p-5 sm:p-6 flex items-center justify-between gap-4 group cursor-pointer">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-accent to-accent-glow flex items-center justify-center shadow-glow-sm group-hover:shadow-glow transition-shadow">
+              <i data-lucide="sparkles" class="w-5 h-5 text-white"></i>
+            </div>
+            <div class="text-left">
+              <h3 class="font-heading font-bold text-sm sm:text-base text-white">Explore Endpoints</h3>
+              <p class="text-xs text-ink-400 mt-0.5">Browse catalog & test parameters live</p>
+            </div>
+          </div>
+          <div class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-accent/20 group-hover:border-accent/30 transition-all">
+            <i data-lucide="arrow-right" class="w-4 h-4 text-ink-300 group-hover:text-accent-soft transition-colors"></i>
+          </div>
+        </button>
+      </div>
+
+      <!-- Stats -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 fade-up d3">
+        <div class="card p-5 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-medium text-ink-400 uppercase tracking-wider">Latency</span>
+            <div class="w-8 h-8 rounded-xl bg-accent-amber/10 flex items-center justify-center">
+              <i data-lucide="zap" class="w-3.5 h-3.5 text-accent-amber"></i>
+            </div>
+          </div>
+          <div id="bottom-latency" class="font-mono text-2xl font-bold text-white">...ms</div>
+        </div>
+
+        <div class="card p-5 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-medium text-ink-400 uppercase tracking-wider">Endpoints</span>
+            <div class="w-8 h-8 rounded-xl bg-accent/10 flex items-center justify-center">
+              <i data-lucide="layers" class="w-3.5 h-3.5 text-accent-soft"></i>
+            </div>
+          </div>
+          <div id="stat-total" class="font-mono text-2xl font-bold text-white">-</div>
+        </div>
+
+        <div class="card p-5 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-medium text-ink-400 uppercase tracking-wider">Categories</span>
+            <div class="w-8 h-8 rounded-xl bg-accent-cyan/10 flex items-center justify-center">
+              <i data-lucide="folder-git-2" class="w-3.5 h-3.5 text-accent-cyan"></i>
+            </div>
+          </div>
+          <div id="stat-categories" class="font-mono text-2xl font-bold text-white">-</div>
+        </div>
+      </div>
+
+      <!-- Features -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 fade-up d4">
+        <div class="card p-5 space-y-3">
+          <div class="w-10 h-10 rounded-xl bg-accent-mint/10 flex items-center justify-center">
+            <i data-lucide="gauge" class="w-5 h-5 text-accent-mint"></i>
+          </div>
+          <h4 class="font-heading font-semibold text-sm text-white">Lightweight & Fast</h4>
+          <p class="text-xs text-ink-400 leading-relaxed">Built with Node.js ESM. Low latency, production-ready from day one.</p>
+        </div>
+        <div class="card p-5 space-y-3">
+          <div class="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
+            <i data-lucide="flask-conical" class="w-5 h-5 text-accent-soft"></i>
+          </div>
+          <h4 class="font-heading font-semibold text-sm text-white">Live Testing</h4>
+          <p class="text-xs text-ink-400 leading-relaxed">Hit any endpoint right from the browser with custom parameters.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- DOCS VIEW -->
+    <div id="view-docs" class="view-transition view-leave hidden space-y-6">
+      
+      <!-- Search header -->
+      <div class="card p-5 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="font-heading font-bold text-xl text-white tracking-tight">Endpoint Directory</h2>
+            <p class="text-xs text-ink-400 mt-1">Search, filter by category, and test in real time.</p>
+          </div>
+          <div class="relative w-full sm:w-72">
+            <i data-lucide="search" class="w-4 h-4 text-ink-500 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+            <input type="text" id="search-input" placeholder="Search endpoints..." class="w-full input-field pl-10 pr-4 py-2.5 text-xs font-medium" />
+          </div>
+        </div>
+        <div class="flex items-center gap-2 overflow-x-auto pb-0.5" id="category-tabs"></div>
+      </div>
+
+      <!-- Endpoints list -->
+      <div id="endpoint-container" class="space-y-4">
+        <div class="text-center py-16 card text-xs font-medium text-ink-500">
+          Loading endpoint catalog...
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- MOBILE NAV -->
+  <div class="fixed bottom-4 inset-x-4 z-40 sm:hidden">
+    <div class="glass-strong rounded-2xl p-1.5 flex items-center justify-around gap-1 border border-white/8 shadow-card">
+      <button onclick="smoothNavigate('home')" class="flex-1 py-2.5 rounded-xl text-[11px] font-semibold flex flex-col items-center gap-1 text-ink-300 hover:text-white hover:bg-white/5 transition-colors">
+        <i data-lucide="home" class="w-4 h-4"></i>
+        <span>Home</span>
+      </button>
+      <button onclick="smoothNavigate('docs')" class="flex-1 py-2.5 rounded-xl text-[11px] font-semibold flex flex-col items-center gap-1 bg-accent text-white shadow-glow-sm">
+        <i data-lucide="book-open" class="w-4 h-4"></i>
+        <span>Docs</span>
+      </button>
+      <a href="https://wa.me/628895307489" target="_blank" class="flex-1 py-2.5 rounded-xl text-[11px] font-semibold flex flex-col items-center gap-1 text-ink-300 hover:text-white hover:bg-white/5 transition-colors">
+        <i data-lucide="message-circle" class="w-4 h-4"></i>
+        <span>Contact</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- MODAL BACKDROP -->
+  <div id="modal-backdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 opacity-0 pointer-events-none transition-opacity duration-300" onclick="closeModal()"></div>
+
+  <!-- MODAL -->
+  <div id="modal-sheet" class="modal-sheet fixed inset-x-0 bottom-0 sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2 z-50 max-w-xl mx-auto w-full max-h-[92vh] sm:max-h-[85vh] glass-strong rounded-t-3xl sm:rounded-3xl shadow-card-hover flex flex-col overflow-hidden border border-white/10">
+    
+    <div class="flex items-center justify-between px-5 py-4 border-b border-white/6">
+      <div class="flex items-center gap-2.5">
+        <span id="modal-badge-method" class="px-2.5 py-0.5 text-[10px] font-mono font-semibold uppercase rounded-lg method-get">GET</span>
+        <h3 id="modal-title" class="font-heading font-bold text-sm sm:text-base text-white tracking-tight">Endpoint</h3>
+      </div>
+      <button onclick="closeModal()" class="w-8 h-8 rounded-xl bg-white/5 border border-white/8 flex items-center justify-center text-ink-400 hover:text-white hover:bg-white/10 transition-colors">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-5 space-y-5">
+      
+      <div>
+        <label class="block text-[11px] font-medium text-ink-500 uppercase tracking-wider mb-1.5">Description</label>
+        <p id="modal-desc" class="text-sm text-ink-200 font-medium leading-relaxed">-</p>
+      </div>
+
+      <div>
+        <label class="block text-[11px] font-medium text-ink-500 uppercase tracking-wider mb-1.5">Path</label>
+        <div class="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/6 font-mono text-xs font-medium text-accent-soft">
+          <span id="modal-path" class="truncate max-w-[220px] sm:max-w-[280px]">/</span>
+          <button onclick="copyRoute()" class="btn btn-ghost px-2.5 py-1 text-[10px] flex items-center gap-1.5" title="Copy route">
+            <i data-lucide="copy" class="w-3 h-3"></i>
+            <span>Copy</span>
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-[11px] font-medium text-ink-500 uppercase tracking-wider mb-2.5">Parameters</label>
+        <form id="modal-form" onsubmit="executeRequest(event)" class="space-y-4">
+          <div id="modal-inputs" class="space-y-3.5"></div>
+          <button type="submit" id="btn-submit" class="w-full btn btn-primary py-3.5 px-4 text-xs flex items-center justify-center gap-2.5">
+            <span id="btn-submit-icon"><i data-lucide="send" class="w-4 h-4"></i></span>
+            <span id="btn-submit-text">Send Request</span>
+          </button>
+        </form>
+      </div>
+
+      <div id="modal-response-wrapper" class="space-y-2.5 hidden">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <div class="flex items-center gap-2">
+            <label class="text-[11px] font-medium text-ink-500 uppercase tracking-wider">Response</label>
+            <span id="modal-status-pill" class="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-lg bg-accent-mint/15 text-accent-mint border border-accent-mint/25">200 OK</span>
+            <span id="modal-time-pill" class="text-[10px] font-mono font-medium text-ink-500">0ms</span>
+          </div>
+          <button onclick="copyResponse()" class="btn btn-ghost px-2.5 py-1 text-[10px] flex items-center gap-1.5">
+            <i data-lucide="copy" class="w-3 h-3"></i>
+            <span>Copy</span>
+          </button>
+        </div>
+        <div class="bg-ink-950/80 border border-white/6 rounded-2xl p-4 overflow-x-auto max-h-64 select-text">
+          <pre id="modal-response-body" class="font-mono text-xs leading-relaxed text-ink-200"></pre>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-white/5 py-6 px-4 mt-auto relative z-10">
+    <div class="max-w-3xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] font-medium text-ink-500 text-center sm:text-left">
+      <div>© 2026 Justputu's — DenzcOne REST API</div>
+      <div class="px-2.5 py-0.5 rounded-lg bg-accent/10 border border-accent/20 text-accent-soft font-semibold">v2.0 Stable</div>
+    </div>
+  </footer>
+
+  <script>
+    let registry = {};
+    let activeEndpoint = null;
+    let currentCategory = 'all';
+    let rawResponseText = '';
+    const openFolders = new Set();
+
+    function smoothNavigate(targetView) {
+      const homeView = document.getElementById('view-home');
+      const docsView = document.getElementById('view-docs');
+      const current = targetView === 'docs' ? homeView : docsView;
+      const destination = targetView === 'docs' ? docsView : homeView;
+
+      current.classList.remove('view-enter');
+      current.classList.add('view-leave');
+
+      setTimeout(() => {
+        current.classList.add('hidden');
+        destination.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        setTimeout(() => {
+          destination.classList.remove('view-leave');
+          destination.classList.add('view-enter');
+        }, 40);
+      }, 220);
+    }
+
+    const notify = (icon, title) => {
+      Swal.fire({
+        icon,
+        title,
+        position: 'center',
+        showConfirmButton: false,
+        timer: 1500,
+        customClass: { popup: 'custom-swal' },
+        iconColor: icon === 'success' ? '#34D399' : '#FB7185'
+      });
+    };
+
+    const formatCodeHighlight = (data) => {
+      let json = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+      json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, (match) => {
+        let cls = 'json-number';
+        if (/^"/.test(match)) cls = /:$/.test(match) ? 'json-key' : 'json-string';
+        else if (/true|false/.test(match)) cls = 'json-boolean';
+        else if (/null/.test(match)) cls = 'json-null';
+        return `<span class="${cls}">${match}</span>`;
+      });
+    };
+
+    async function fetchEndpoints() {
+      try {
+        const res = await fetch(`/api/endpoints?_t=${Date.now()}`, {
+          cache: "no-store",
+          headers: { "Pragma": "no-cache", "Cache-Control": "no-cache" }
+        });
+        const data = await res.json();
+        if (data.status && data.result) {
+          registry = data.result.endpoints || {};
+          document.getElementById('stat-total').textContent = data.result.total || 0;
+          document.getElementById('stat-categories').textContent = Object.keys(registry).length;
+          buildCategoryTabs();
+          renderEndpoints();
+        }
+      } catch (err) {
+        document.getElementById('endpoint-container').innerHTML = `
+          <div class="text-center py-14 card text-accent-rose text-xs font-medium">
+            Failed to load endpoints from server.
+          </div>
+        `;
+      }
+    }
+
+    function buildCategoryTabs() {
+      const container = document.getElementById('category-tabs');
+      container.innerHTML = `
+        <button onclick="filterCategory('all')" class="btn shrink-0 px-3.5 py-1.5 text-xs ${currentCategory === 'all' ? 'btn-primary' : 'btn-ghost'}">
+          All
+        </button>
+      `;
+      Object.keys(registry).forEach(cat => {
+        const btn = document.createElement('button');
+        btn.onclick = () => filterCategory(cat);
+        btn.className = `btn shrink-0 px-3.5 py-1.5 text-xs uppercase ${currentCategory === cat ? 'btn-primary' : 'btn-ghost'}`;
+        btn.textContent = cat;
+        container.appendChild(btn);
+      });
+    }
+
+    function filterCategory(cat) {
+      currentCategory = cat;
+      buildCategoryTabs();
+      renderEndpoints(document.getElementById('search-input').value.trim().toLowerCase());
+    }
+
+    function toggleFolder(cat) {
+      const content = document.getElementById(`folder-content-${cat}`);
+      const chevron = document.getElementById(`folder-chevron-${cat}`);
+      const icon = document.getElementById(`folder-icon-${cat}`);
+      if (!content) return;
+
+      const isNowOpen = !openFolders.has(cat);
+      if (isNowOpen) {
+        openFolders.add(cat);
+        content.classList.add('open');
+        chevron.style.transform = 'rotate(180deg)';
+        icon.setAttribute('data-lucide', 'folder-open');
+      } else {
+        openFolders.delete(cat);
+        content.classList.remove('open');
+        chevron.style.transform = 'rotate(0deg)';
+        icon.setAttribute('data-lucide', 'folder');
+      }
+      lucide.createIcons();
+    }
+
+    function renderEndpoints(searchQuery = '') {
+      const container = document.getElementById('endpoint-container');
+      container.innerHTML = '';
+      const categories = Object.keys(registry);
+      let count = 0;
+
+      categories.forEach(cat => {
+        if (currentCategory !== 'all' && currentCategory !== cat) return;
+
+        const endpoints = registry[cat].filter(ep => {
+          if (!searchQuery) return true;
+          return ep.name.toLowerCase().includes(searchQuery) ||
+                 ep.endpoint.toLowerCase().includes(searchQuery) ||
+                 (ep.description || '').toLowerCase().includes(searchQuery);
+        });
+
+        if (endpoints.length === 0) return;
+        count += endpoints.length;
+
+        if (currentCategory === 'all' && !searchQuery) {
+          const isOpen = openFolders.has(cat);
+          const folderBox = document.createElement('div');
+          folderBox.className = 'card overflow-hidden';
+
+          folderBox.innerHTML = `
+            <div onclick="toggleFolder('${cat}')" class="p-4 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] transition-colors select-none border-b border-white/5">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-accent/15 flex items-center justify-center">
+                  <i data-lucide="${isOpen ? 'folder-open' : 'folder'}" id="folder-icon-${cat}" class="w-4.5 h-4.5 text-accent-soft"></i>
+                </div>
+                <div>
+                  <h3 class="text-xs font-heading font-semibold uppercase tracking-wider text-white">${cat}</h3>
+                  <span class="text-[10px] font-mono text-ink-500">${endpoints.length} endpoints</span>
+                </div>
+              </div>
+              <div class="w-8 h-8 rounded-xl bg-white/5 border border-white/8 flex items-center justify-center">
+                <i data-lucide="chevron-down" id="folder-chevron-${cat}" class="w-3.5 h-3.5 text-ink-400 transition-transform duration-300" style="transform: ${isOpen ? 'rotate(180deg)' : 'rotate(0deg)'}"></i>
+              </div>
+            </div>
+            <div id="folder-content-${cat}" class="folder-content ${isOpen ? 'open' : ''}">
+              <div class="overflow-hidden">
+                <div class="p-4 grid grid-cols-1 gap-3" id="folder-grid-${cat}"></div>
+              </div>
+            </div>
+          `;
+          container.appendChild(folderBox);
+          const grid = document.getElementById(`folder-grid-${cat}`);
+          endpoints.forEach(ep => grid.appendChild(createEndpointCard(ep)));
+        } else {
+          const block = document.createElement('div');
+          block.className = 'space-y-3';
+          block.innerHTML = `
+            <div class="flex items-center gap-2.5 pb-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-accent"></span>
+              <h3 class="text-xs font-heading font-semibold uppercase tracking-wider text-white">${cat}</h3>
+              <span class="text-[10px] font-mono text-ink-500">(${endpoints.length})</span>
+            </div>
+            <div class="grid grid-cols-1 gap-3" id="grid-${cat}"></div>
+          `;
+          container.appendChild(block);
+          const grid = document.getElementById(`grid-${cat}`);
+          endpoints.forEach(ep => grid.appendChild(createEndpointCard(ep)));
+        }
+      });
+
+      if (count === 0) {
+        container.innerHTML = `
+          <div class="text-center py-16 card text-xs font-medium text-ink-500">
+            No endpoints match your search.
+          </div>
+        `;
+      }
+      lucide.createIcons();
+    }
+
+    function getMethodClass(method) {
+      const m = (method || 'GET').toUpperCase();
+      if (m === 'POST') return 'method-post';
+      if (m === 'PUT' || m === 'PATCH') return 'method-put';
+      if (m === 'DELETE') return 'method-delete';
+      return 'method-get';
+    }
+
+    function createEndpointCard(ep) {
+      const card = document.createElement('div');
+      card.className = 'card card-hover p-4 cursor-pointer flex flex-col justify-between space-y-3';
+      card.onclick = () => openModal(ep);
+
+      const method = (ep.method && ep.method[0]) || 'GET';
+
+      card.innerHTML = `
+        <div>
+          <div class="flex items-center justify-between gap-2 mb-1.5">
+            <h4 class="text-xs font-heading font-semibold text-white tracking-wide">${ep.name}</h4>
+            <span class="px-2 py-0.5 text-[9px] font-mono font-semibold rounded-md ${getMethodClass(method)}">${method}</span>
+          </div>
+          <p class="text-[11px] text-ink-400 leading-relaxed">${ep.description || 'No description provided.'}</p>
+        </div>
+        <div class="flex items-center justify-between pt-2.5 border-t border-white/5 text-[11px] font-mono font-medium">
+          <span class="truncate max-w-[170px] sm:max-w-[250px] text-accent-soft">${ep.endpoint}</span>
+          <div class="flex items-center gap-1 text-ink-400">
+            <span>Test</span>
+            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+          </div>
+        </div>
+      `;
+      return card;
+    }
+
+    function openModal(ep) {
+      activeEndpoint = ep;
+      const modal = document.getElementById('modal-sheet');
+      const backdrop = document.getElementById('modal-backdrop');
+
+      document.getElementById('modal-title').textContent = ep.name;
+      document.getElementById('modal-desc').textContent = ep.description || '-';
+      document.getElementById('modal-path').textContent = ep.endpoint;
+
+      const method = (ep.method && ep.method[0]) || 'GET';
+      const badge = document.getElementById('modal-badge-method');
+      badge.textContent = method;
+      badge.className = `px-2.5 py-0.5 text-[10px] font-mono font-semibold uppercase rounded-lg ${getMethodClass(method)}`;
+
+      const inputsContainer = document.getElementById('modal-inputs');
+      inputsContainer.innerHTML = '';
+      const params = ep.params || {};
+      const keys = Object.keys(params);
+
+      if (keys.length === 0) {
+        inputsContainer.innerHTML = `
+          <div class="text-xs font-medium text-ink-500 p-3.5 rounded-xl bg-white/[0.03] border border-white/6">
+            This endpoint requires no parameters.
+          </div>
+        `;
+      } else {
+        keys.forEach(key => {
+          const item = params[key];
+          const isRequired = typeof item === 'object' ? item.required : false;
+          const desc = typeof item === 'object' ? item.description : '';
+          const group = document.createElement('div');
+          group.className = 'space-y-1.5';
+          group.innerHTML = `
+            <div class="flex items-center justify-between text-xs font-medium">
+              <label class="text-ink-200">${key} ${isRequired ? '<span class="text-accent-rose">*</span>' : ''}</label>
+              <span class="text-[10px] text-ink-500">${desc}</span>
+            </div>
+            <input type="text" name="${key}" ${isRequired ? 'required' : ''} placeholder="Enter ${key}..." class="w-full input-field px-3.5 py-2.5 text-xs font-medium" />
+          `;
+          inputsContainer.appendChild(group);
+        });
+      }
+
+      document.getElementById('modal-response-wrapper').classList.add('hidden');
+      document.body.style.overflow = 'hidden';
+      backdrop.classList.remove('opacity-0', 'pointer-events-none');
+      backdrop.classList.add('opacity-100');
+      modal.classList.add('active');
+      lucide.createIcons();
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('modal-sheet');
+      const backdrop = document.getElementById('modal-backdrop');
+      modal.classList.remove('active');
+      backdrop.classList.remove('opacity-100');
+      backdrop.classList.add('opacity-0', 'pointer-events-none');
+      document.body.style.overflow = '';
+      activeEndpoint = null;
+    }
+
+    async function executeRequest(e) {
+      e.preventDefault();
+      if (!activeEndpoint) return;
+
+      const submitBtn = document.getElementById('btn-submit');
+      const submitText = document.getElementById('btn-submit-text');
+      const submitIcon = document.getElementById('btn-submit-icon');
+      const responseWrapper = document.getElementById('modal-response-wrapper');
+      const responseBody = document.getElementById('modal-response-body');
+      const statusPill = document.getElementById('modal-status-pill');
+      const timePill = document.getElementById('modal-time-pill');
+
+      submitBtn.disabled = true;
+      submitBtn.classList.add('opacity-70');
+      submitText.textContent = 'Processing...';
+      submitIcon.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>';
+      lucide.createIcons();
+
+      const formData = new FormData(e.target);
+      const queryParams = new URLSearchParams();
+      const bodyPayload = {};
+      for (const [key, val] of formData.entries()) {
+        if (val.trim()) {
+          queryParams.append(key, val.trim());
+          bodyPayload[key] = val.trim();
+        }
+      }
+
+      const method = (activeEndpoint.method && activeEndpoint.method[0]) || 'GET';
+      let url = activeEndpoint.endpoint;
+      const options = { method };
+
+      if (method === 'GET') {
+        const qs = queryParams.toString();
+        if (qs) url += `?${qs}`;
+      } else {
+        options.headers = { 'Content-Type': 'application/json' };
+        options.body = JSON.stringify(bodyPayload);
+      }
+
+      const start = performance.now();
+      try {
+        const response = await fetch(url, options);
+        const duration = Math.round(performance.now() - start);
+        const json = await response.json();
+        rawResponseText = JSON.stringify(json, null, 2);
+
+        statusPill.textContent = `${response.status} ${response.statusText || 'OK'}`;
+        statusPill.className = response.ok
+          ? 'text-[10px] font-mono font-semibold px-2 py-0.5 rounded-lg bg-accent-mint/15 text-accent-mint border border-accent-mint/25'
+          : 'text-[10px] font-mono font-semibold px-2 py-0.5 rounded-lg bg-accent-rose/15 text-accent-rose border border-accent-rose/25';
+
+        timePill.textContent = `${duration}ms`;
+        responseBody.innerHTML = formatCodeHighlight(json);
+        responseWrapper.classList.remove('hidden');
+        notify(response.ok ? 'success' : 'error', response.ok ? `Success (${response.status})` : (json.message || 'Request failed'));
+      } catch (err) {
+        const duration = Math.round(performance.now() - start);
+        const errorObj = { status: false, message: err.message };
+        rawResponseText = JSON.stringify(errorObj, null, 2);
+        statusPill.textContent = 'Error';
+        statusPill.className = 'text-[10px] font-mono font-semibold px-2 py-0.5 rounded-lg bg-accent-rose/15 text-accent-rose border border-accent-rose/25';
+        timePill.textContent = `${duration}ms`;
+        responseBody.innerHTML = formatCodeHighlight(errorObj);
+        responseWrapper.classList.remove('hidden');
+        notify('error', err.message || 'Request failed');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-70');
+        submitText.textContent = 'Send Request';
+        submitIcon.innerHTML = '<i data-lucide="send" class="w-4 h-4"></i>';
+        lucide.createIcons();
+      }
+    }
+
+    function copyRoute() {
+      if (!activeEndpoint) return;
+      navigator.clipboard.writeText(window.location.origin + activeEndpoint.endpoint);
+      notify('success', 'Route copied');
+    }
+
+    function copyResponse() {
+      if (rawResponseText) {
+        navigator.clipboard.writeText(rawResponseText);
+        notify('success', 'JSON copied');
+      }
+    }
+
+    async function checkLatency() {
+      const el = document.getElementById('bottom-latency');
+      const start = performance.now();
+      try {
+        await fetch('/tools/ping');
+        el.textContent = `${Math.round(performance.now() - start)}ms`;
+      } catch {
+        el.textContent = 'Offline';
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      lucide.createIcons();
+      await fetchEndpoints();
+      checkLatency();
+      document.getElementById('search-input').addEventListener('input', (e) => {
+        renderEndpoints(e.target.value.trim().toLowerCase());
+      });
+    });
+  </script>
+</body>
+</html>
